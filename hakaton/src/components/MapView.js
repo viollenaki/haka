@@ -137,8 +137,8 @@ const MapView = ({ facilities, recommendations, onBoundsChange, facilityType }) 
       </div>
       
       <MapContainer
-        center={[55.7558, 37.6173]} // Москва
-        zoom={10}
+        center={[42.8740, 74.6122]} // Бишкек
+        zoom={13}
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
