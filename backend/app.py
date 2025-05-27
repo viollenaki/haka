@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 # Загрузка переменных окружения
 load_dotenv()
 
-app = FastAPI(title="GovFacility Recommender API")
+app = FastAPI(title="InfraMap")
 
 # Настройка CORS
 app.add_middleware(

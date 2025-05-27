@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 const AboutPage = () => {
   return (
     <div className="about-page" style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-      <h1>О проекте "GovFacility Recommender"</h1>
+      <h1>О проекте "InfraMap Recommender"</h1>
       
       <section>
         <h2>Цель проекта</h2>

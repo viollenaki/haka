@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import HeatmapLayer from 'react-leaflet-heatmap-layer';
+import 'leaflet.heat';
 
 // Исправление проблемы с иконками Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -69,6 +69,35 @@ function BoundsHandler({ onBoundsChange }) {
   return null;
 }
 
+// Компонент для создания тепловой карты
+function HeatmapLayerComponent({ points }) {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (!points || points.length === 0) return;
+
+    const heatData = points.map(point => [
+      point.lat,
+      point.lng,
+      point.intensity
+    ]);
+
+    const heatLayer = L.heatLayer(heatData, { 
+      radius: 20,
+      blur: 15,
+      maxZoom: 17,
+      max: 100,
+      gradient: { 0.4: 'blue', 0.6: 'lime', 0.8: 'yellow', 1.0: 'red' }
+    }).addTo(map);
+
+    return () => {
+      map.removeLayer(heatLayer);
+    };
+  }, [map, points]);
+
+  return null;
+}
+
 const MapView = ({ facilities, recommendations, onBoundsChange, facilityType }) => {
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [populationData, setPopulationData] = useState([]);
@@ -120,15 +149,7 @@ const MapView = ({ facilities, recommendations, onBoundsChange, facilityType }) 
         <BoundsHandler onBoundsChange={onBoundsChange} />
         
         {showHeatmap && (
-          <HeatmapLayer
-            points={populationData}
-            longitudeExtractor={m => m.lng}
-            latitudeExtractor={m => m.lat}
-            intensityExtractor={m => m.intensity}
-            radius={20}
-            max={100}
-            minOpacity={0.1}
-          />
+          <HeatmapLayerComponent points={populationData} />
         )}
         
         {facilities.map((facility, idx) => (
