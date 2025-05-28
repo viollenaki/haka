@@ -120,7 +120,7 @@ function HeatmapLayerComponent({ points }) {
   return null;
 }
 
-const MapView = ({ facilities, recommendations, onBoundsChange, facilityType }) => {
+const MapView = ({ facilities, recommendations, onBoundsChange, facilityType, coverageRadius }) => {
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [populationData, setPopulationData] = useState([]);
 
@@ -144,6 +144,21 @@ const MapView = ({ facilities, recommendations, onBoundsChange, facilityType }) 
 
     fetchPopulationData();
   }, [onBoundsChange]);
+
+  // Функция для определения цвета круга в зависимости от типа учреждения
+  const getCircleColor = (type) => {
+    const colors = {
+      'school': '#4CAF50',       // Зеленый
+      'hospital': '#F44336',     // Красный
+      'clinic': '#FF9800',       // Оранжевый
+      'kindergarten': '#9C27B0', // Фиолетовый
+      'college': '#2196F3',      // Синий
+      'university': '#3F51B5',   // Индиго
+      'fire_station': '#FF5722'  // Красно-оранжевый
+    };
+    
+    return colors[type] || '#607D8B'; // Серый по умолчанию
+  };
 
   return (
     <div className="map-container">
@@ -175,19 +190,31 @@ const MapView = ({ facilities, recommendations, onBoundsChange, facilityType }) 
         )}
         
         {facilities.map((facility, idx) => (
-          <Marker 
-            key={`facility-${idx}`}
-            position={[facility.latitude, facility.longitude]} 
-            icon={facilityIcons[facilityType] || facilityIcons.school}
-          >
-            <Popup>
-              <div>
-                <h3>{facility.name}</h3>
-                <p>Тип: {facility.type}</p>
-                {facility.address && <p>Адрес: {facility.address}</p>}
-              </div>
-            </Popup>
-          </Marker>
+          <React.Fragment key={`facility-${idx}`}>
+            <Marker 
+              position={[facility.latitude, facility.longitude]} 
+              icon={facilityIcons[facility.type || facilityType] || facilityIcons.school}
+            >
+              <Popup>
+                <div>
+                  <h3>{facility.name}</h3>
+                  <p>Тип: {facility.type}</p>
+                  {facility.address && <p>Адрес: {facility.address}</p>}
+                </div>
+              </Popup>
+            </Marker>
+            <Circle 
+              center={[facility.latitude, facility.longitude]}
+              radius={coverageRadius * 1000} // Конвертируем км в метры
+              pathOptions={{ 
+                fillColor: getCircleColor(facility.type || facilityType), 
+                fillOpacity: 0.15, 
+                color: getCircleColor(facility.type || facilityType), 
+                opacity: 0.5,
+                weight: 1
+              }}
+            />
+          </React.Fragment>
         ))}
         
         {recommendations.map((rec, idx) => (
@@ -206,12 +233,14 @@ const MapView = ({ facilities, recommendations, onBoundsChange, facilityType }) 
             </Marker>
             <Circle 
               center={[rec.latitude, rec.longitude]}
-              radius={2000} // 2km radius
+              radius={coverageRadius * 1000} // Используем радиус в метрах из props
               pathOptions={{ 
                 fillColor: 'blue', 
                 fillOpacity: 0.1, 
                 color: 'blue', 
-                opacity: 0.5 
+                opacity: 0.5,
+                weight: 2,
+                dashArray: '5, 5' // Пунктирный круг для рекомендаций
               }}
             />
           </React.Fragment>
