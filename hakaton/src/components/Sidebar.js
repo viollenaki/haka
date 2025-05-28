@@ -66,6 +66,18 @@ const Sidebar = ({
             <input 
               type="radio" 
               name="facilityType" 
+              value="college"
+              checked={selectedFacilityType === 'college'}
+              onChange={() => onFacilityTypeChange('college')}
+            />
+            Колледжи
+          </label>
+        </div>
+        <div>
+          <label>
+            <input 
+              type="radio" 
+              name="facilityType" 
               value="university"
               checked={selectedFacilityType === 'university'}
               onChange={() => onFacilityTypeChange('university')}

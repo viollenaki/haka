@@ -1,12 +1,13 @@
 import React from 'react';
 import './Facility.css';
 
-const facilityTypes = ['school', 'hospital', 'clinic', 'kindergarten', 'university', 'fire_station'];
+const facilityTypes = ['school', 'hospital', 'clinic', 'kindergarten', 'college', 'university', 'fire_station'];
 const labels = {
   school: 'Школа',
   hospital: 'Больница',
   clinic: 'Клиника',
   kindergarten: 'Детский сад',
+  college: 'Колледж',
   university: 'Университет',
   fire_station: 'Пожарная станция'
 };
