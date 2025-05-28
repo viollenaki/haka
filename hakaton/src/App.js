@@ -7,7 +7,6 @@ import MapView from './components/MapView';
 import AnalysisPanel from './components/AnalysisPanel';
 import RecommendationPanel from './components/RecommendationPanel';
 import AboutPage from './pages/AboutPage';
-import KeplerMapPage from './pages/KeplerMapPage';
 import api from './utils/api';
 import radiusData from './radius.json';
 
@@ -146,7 +145,6 @@ function App() {
               </>
             } />
             <Route path="/about" element={<AboutPage />} />
-            <Route path="/kepler-map" element={<KeplerMapPage />} />
           </Routes>
         </div>
       </div>
