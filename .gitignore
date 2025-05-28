@@ -1,1 +1,25 @@
-node_modules
+# См. https://help.github.com/articles/ignoring-files/ для дополнительной информации
+
+# dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+
+# env files - защита секретов
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test.local
+.env.production.local
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
