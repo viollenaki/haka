@@ -4,11 +4,11 @@ import './App.css';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import MapView from './components/MapView';
-import AnalysisPanel from './components/AnalysisPanel';
 import RecommendationPanel from './components/RecommendationPanel';
 import AboutPage from './pages/AboutPage';
 import api from './utils/api';
 import radiusData from './radius.json';
+import FacilityPanel from './components/Facility/Facility';
 
 function App() {
   const [selectedFacilityType, setSelectedFacilityType] = useState('school');
@@ -134,10 +134,6 @@ function App() {
                     facilityType={selectedFacilityType}
                     coverageRadius={coverageRadius}
                   />
-                  <AnalysisPanel 
-                    facilities={facilities}
-                    facilityType={selectedFacilityType}
-                  />
                   <RecommendationPanel 
                     recommendations={recommendations}
                   />
@@ -147,6 +143,7 @@ function App() {
             <Route path="/about" element={<AboutPage />} />
           </Routes>
         </div>
+        <FacilityPanel />
       </div>
     </Router>
   );
