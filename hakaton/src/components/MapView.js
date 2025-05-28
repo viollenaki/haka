@@ -1,16 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
-import L from 'leaflet';
+import L, { popup } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat';
-
-// Исправление проблемы с иконками Leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
 
 // Кастомные иконки для разных типов учреждений
 const facilityIcons = {
@@ -19,42 +11,49 @@ const facilityIcons = {
     iconSize: [35, 35],
     iconAnchor: [17, 35],
     popupAnchor: [0, -35],
+    radius: 2
   }),
   hospital: new L.Icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/2785/2785482.png',
     iconSize: [35, 35],
     iconAnchor: [17, 35],
     popupAnchor: [0, -35],
+    radius: 1
   }),
   clinic: new L.Icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/2982/2982466.png',
     iconSize: [35, 35],
     iconAnchor: [17, 35],
     popupAnchor: [0, -35],
+    radius: 2
   }),
   kindergarten: new L.Icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/3597/3597071.png',
     iconSize: [35, 35],
     iconAnchor: [17, 35],
     popupAnchor: [0, -35],
+    radius: 1.5
   }),
   college: new L.Icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/214/214282.png',
     iconSize: [35, 35],
     iconAnchor: [17, 35],
     popupAnchor: [0, -35],
+    radius: 2
   }),
   university: new L.Icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/2957/2957872.png',
     iconSize: [35, 35],
     iconAnchor: [17, 35],
     popupAnchor: [0, -35],
+    radius: 5
   }),
   fire_station: new L.Icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/4108/4108894.png',
     iconSize: [35, 35],
     iconAnchor: [17, 35],
     popupAnchor: [0, -35],
+    radius: 5
   }),
 };
 
@@ -120,30 +119,44 @@ function HeatmapLayerComponent({ points }) {
   return null;
 }
 
+
+// Слушает drop на карте и рисует маркер и круг с popup
+function DropHandler({ radius }) {
+  const map = useMap();
+  useEffect(() => {
+    const handleDrop = e => {
+      e.preventDefault();
+      const type = e.dataTransfer.getData('facilityType');
+      const rect = map.getContainer().getBoundingClientRect();
+      const point = [e.clientX - rect.left, e.clientY - rect.top];
+      const latlng = map.containerPointToLatLng(point);
+      const icon = facilityIcons[type] || facilityIcons.school;
+      const iconRadius = icon.options?.radius || radius;
+      const r = iconRadius * 1000;
+      L.marker([latlng.lat, latlng.lng], { icon }).addTo(map);
+      L.popup()
+        .setLatLng(latlng)
+      L.circle([latlng.lat, latlng.lng], {
+        color: 'red',
+        fillColor: '#f03',
+        // fillOpacity: 0.5,
+        radius: r
+      }).addTo(map);
+    };
+    const container = map.getContainer();
+    container.addEventListener('dragover', e => e.preventDefault());
+    container.addEventListener('drop', handleDrop);
+    return () => {
+      container.removeEventListener('dragover', e => e.preventDefault());
+      container.removeEventListener('drop', handleDrop);
+    };
+  }, [map, radius]);
+  return null;
+}
+
 const MapView = ({ facilities, recommendations, onBoundsChange, facilityType, coverageRadius }) => {
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [populationData, setPopulationData] = useState([]);
-
-  // Загрузка данных о плотности населения при изменении границ карты
-  useEffect(() => {
-    const fetchPopulationData = async () => {
-      try {
-        // Имитация загрузки данных о плотности населения
-        // В реальном приложении здесь был бы запрос к API
-        const mockData = Array.from({ length: 200 }, () => ({
-          lat: 55.5 + Math.random() * 0.3, // Примерные координаты
-          lng: 37.5 + Math.random() * 0.3,
-          intensity: Math.random() * 100
-        }));
-        
-        setPopulationData(mockData);
-      } catch (error) {
-        console.error('Failed to load population data:', error);
-      }
-    };
-
-    fetchPopulationData();
-  }, [onBoundsChange]);
 
   // Функция для определения цвета круга в зависимости от типа учреждения
   const getCircleColor = (type) => {
@@ -174,7 +187,7 @@ const MapView = ({ facilities, recommendations, onBoundsChange, facilityType, co
       </div>
       
       <MapContainer
-        center={[42.8740, 74.6122]} // Бишкек
+        center={[42.8740, 74.6122]}
         zoom={13}
         style={{ height: '100%', width: '100%' }}
       >
@@ -184,6 +197,8 @@ const MapView = ({ facilities, recommendations, onBoundsChange, facilityType, co
         />
         
         <BoundsHandler onBoundsChange={onBoundsChange} />
+        {/* <ClickHandler /> */}
+        <DropHandler radius={coverageRadius} />
         
         {showHeatmap && (
           <HeatmapLayerComponent points={populationData} />
