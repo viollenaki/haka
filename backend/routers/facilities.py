@@ -14,13 +14,13 @@ def create_facility(facility: FacilityCreate, db: Session = Depends(get_db)):
     Создание нового объекта инфраструктуры.
     """
     db_facility = FacilityModel(
-        name=facility.name,
-        address=facility.address,
-        latitude=facility.latitude,
-        longitude=facility.longitude,
-        facility_type=facility.facility_type,
-        city=facility.city,
-        country=facility.country
+        name=facility.name,# type: ignore
+        address=facility.address,# type: ignore
+        latitude=facility.latitude,# type: ignore
+        longitude=facility.longitude,# type: ignore
+        facility_type=facility.facility_type,# type: ignore
+        city=facility.city,# type: ignore
+        country=facility.country# type: ignore
     )
     
     db.add(db_facility)
@@ -47,19 +47,19 @@ def get_facilities(
     
     # Применяем фильтры если они указаны
     if min_lat is not None:
-        query = query.filter(FacilityModel.latitude >= min_lat)
+        query = query.filter(FacilityModel.latitude >= min_lat)# type: ignore
     if max_lat is not None:
-        query = query.filter(FacilityModel.latitude <= max_lat)
+        query = query.filter(FacilityModel.latitude <= max_lat)# type: ignore
     if min_lon is not None:
-        query = query.filter(FacilityModel.longitude >= min_lon)
+        query = query.filter(FacilityModel.longitude >= min_lon)# type: ignore
     if max_lon is not None:
-        query = query.filter(FacilityModel.longitude <= max_lon)
+        query = query.filter(FacilityModel.longitude <= max_lon)# type: ignore
     if facility_type is not None:
-        query = query.filter(FacilityModel.facility_type == facility_type)
+        query = query.filter(FacilityModel.facility_type == facility_type)# type: ignore
     if city is not None:
-        query = query.filter(FacilityModel.city == city)
+        query = query.filter(FacilityModel.city == city)# type: ignore
     if country is not None:
-        query = query.filter(FacilityModel.country == country)
+        query = query.filter(FacilityModel.country == country)# type: ignore
     
     facilities = query.all()
     return facilities
@@ -70,7 +70,7 @@ def get_facility(facility_id: int, db: Session = Depends(get_db)):
     """
     Получение объекта по ID.
     """
-    facility = db.query(FacilityModel).filter(FacilityModel.id == facility_id).first()
+    facility = db.query(FacilityModel).filter(FacilityModel.id == facility_id).first()# type: ignore
     if facility is None:
         raise HTTPException(status_code=404, detail="Объект не найден")
     return facility
@@ -88,7 +88,7 @@ def get_facilities_by_type(
     """
     Получение списка объектов определенного типа с возможностью фильтрации по координатам.
     """
-    query = db.query(FacilityModel).filter(FacilityModel.facility_type == facility_type)
+    query = db.query(FacilityModel).filter(FacilityModel.facility_type == facility_type) # type: ignore
     
     # Применяем географические фильтры
     if min_lat is not None:

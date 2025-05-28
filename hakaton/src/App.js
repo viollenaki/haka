@@ -20,7 +20,13 @@ function App() {
   const [isAnalysisLoading, setIsAnalysisLoading] = useState(false);
   const [facilities, setFacilities] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
-  const [coverageRadius, setCoverageRadius] = useState(2); // Радиус охвата по умолчанию в км
+  const [coverageRadius, setCoverageRadius] = useState(2);
+  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [heatmapIntensity, setHeatmapIntensity] = useState(70);
+  
+  // Добавляем состояние для гексагонов
+  const [showHexagons, setShowHexagons] = useState(false);
+  const [hexagonOpacity, setHexagonOpacity] = useState(0.7);
 
   // Находит и устанавливает радиус для выбранного типа учреждения
   const updateCoverageRadius = (facilityType) => {
@@ -130,6 +136,14 @@ function App() {
                   onRunAnalysis={handleRunAnalysis}
                   onGetRecommendations={handleGetRecommendations}
                   isLoading={isAnalysisLoading}
+                  showHeatmap={showHeatmap}
+                  setShowHeatmap={setShowHeatmap}
+                  heatmapIntensity={heatmapIntensity}
+                  setHeatmapIntensity={setHeatmapIntensity}
+                  showHexagons={showHexagons}
+                  setShowHexagons={setShowHexagons}
+                  hexagonOpacity={hexagonOpacity}
+                  setHexagonOpacity={setHexagonOpacity}
                 />
                 <main className="main-content">
                   <MapView 
@@ -138,6 +152,10 @@ function App() {
                     onBoundsChange={handleMapBoundsChange}
                     facilityType={selectedFacilityType}
                     coverageRadius={coverageRadius}
+                    showHeatmap={showHeatmap}
+                    heatmapIntensity={heatmapIntensity}
+                    showHexagons={showHexagons}
+                    hexagonOpacity={hexagonOpacity}
                   />
                 </main>
               </>

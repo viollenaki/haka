@@ -1,19 +1,12 @@
 import React from 'react';
 import { Circle, Tooltip } from 'react-leaflet';
 import { createCoverageLayers } from '../utils/mapUtils';
+import { FACILITY_COLORS } from '../constants/facilities';
 
 /**
  * Цветовая схема для разных типов объектов инфраструктуры
  */
-const typeColors = {
-  school: '#4CAF50',     // Зеленый
-  clinic: '#2196F3',     // Синий
-  hospital: '#F44336',   // Красный
-  kindergarten: '#FF9800', // Оранжевый
-  university: '#9C27B0', // Фиолетовый
-  college: '#795548',    // Коричневый
-  default: '#607D8B'     // Серый (по умолчанию)
-};
+const typeColors = FACILITY_COLORS;
 
 /**
  * Компонент для отображения кругов зон охвата инфраструктурных объектов

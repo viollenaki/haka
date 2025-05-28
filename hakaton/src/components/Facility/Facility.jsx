@@ -18,8 +18,10 @@ const FacilityPanel = () => (
       <div
         key={type}
         className="facility-item"
+        data-type={type}
         draggable
         onDragStart={e => e.dataTransfer.setData('facilityType', type)}
+        title={`Перетащите ${labels[type]} на карту`}
       >
         {labels[type]}
       </div>

@@ -333,7 +333,7 @@ class Api {
     
     try {
       // Загрузка данных из локального файла
-      const response = await fetch('/bishkek_filtered.geojson', {
+      const response = await fetch('/bishkek_filtered.geojson1.js', {
         signal: this._createAbortSignal(requestKey)
       });
       
@@ -380,112 +380,108 @@ class Api {
   }
 
   /**
-   * Загружает данные о населении в формате гексагонов (Н3) из GeoJSON файла
-   * @returns {Promise<Object>} GeoJSON объект с данными о населении
+   * Получает данные о гексагонах с плотностью населения
+   * @returns {Promise<Object>} GeoJSON объект с гексагонами
    */
   async getPopulationHexagons() {
     const requestKey = 'getPopulationHexagons';
     
     try {
-      const response = await fetch('/bishkek_filtered.geojson', {
-        signal: this._createAbortSignal(requestKey)
+      const response = await this.client.get('/population/hexagons', {
+        cancelToken: this._createCancelToken(requestKey)
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to load population hexagon data');
-      }
-      
-      const geojsonData = await response.json();
-      
-      // Координаты в geojson в формате WebMercator (EPSG:3857), 
-      // преобразуем их в lat/lng для Leaflet (EPSG:4326)
-      if (geojsonData.features) {
-        geojsonData.features = geojsonData.features.map(feature => {
-          if (feature.geometry && feature.geometry.coordinates) {
-            feature.geometry.coordinates = [feature.geometry.coordinates[0].map(coord => {
-              const latLng = this._webMercatorToLatLng(coord[0], coord[1]);
-              return [latLng.lng, latLng.lat]; // GeoJSON формат [lng, lat]
-            })];
-          }
-          return feature;
-        });
-      }
-      
-      return geojsonData;
+      return response.data;
     } catch (error) {
-      if (error.name === 'AbortError') {
-        console.log(`Request ${requestKey} canceled`);
+      if (axios.isCancel(error)) {
+        console.log(`Request ${requestKey} canceled:`, error.message);
         return { type: "FeatureCollection", features: [] };
       }
       
       this._logError('getPopulationHexagons', error);
-      return { type: "FeatureCollection", features: [] };
+      
+      // Используем мок-данные из существующей функции и преобразуем их в гексагоны
+      const bounds = {
+        north: 42.9,
+        south: 42.8,
+        east: 74.7,
+        west: 74.5
+      };
+      
+      const pointData = this.mockPopulationDensity(bounds, 100);
+      return this._convertPointsToHexagons(pointData);
     }
   }
 
   /**
-   * Преобразует данные GeoJSON в формат для тепловой карты
+   * Преобразует точечные данные в гексагональную сетку
    * @private
-   * @param {Object} geojsonData Данные в формате GeoJSON
-   * @returns {Array} Массив точек для тепловой карты
+   * @param {Array} points Массив точек с плотностью населения
+   * @returns {Object} GeoJSON объект с гексагонами
    */
-  _convertGeoJsonToHeatmap(geojsonData) {
-    const heatmapData = [];
+  _convertPointsToHexagons(points) {
+    // Создаем гексагональную сетку на основе точек
+    // Это упрощенная реализация для мок-данных
+    const features = [];
+    const hexSize = 0.01; // Примерный размер гексагона
     
-    geojsonData.features.forEach(feature => {
-      if (feature.geometry && feature.geometry.type === 'Polygon' && feature.properties.population) {
-        // Вычисляем центр полигона
-        const coordinates = feature.geometry.coordinates[0];
-        
-        // Для простоты берем первую точку полигона как приближение
-        // В идеале нужно вычислить центроид
-        const point = this._calculatePolygonCenter(coordinates);
-        
-        heatmapData.push({
-          lat: point.lat,
-          lng: point.lng,
-          intensity: feature.properties.population
-        });
+    // Создаем сетку с уникальными ключами
+    const grid = {};
+    
+    // Распределяем точки по гексагонам
+    points.forEach(point => {
+      // Округляем координаты для группировки в гексагоны
+      const hexX = Math.round(point.lng / hexSize) * hexSize;
+      const hexY = Math.round(point.lat / hexSize) * hexSize;
+      const hexKey = `${hexX}-${hexY}`;
+      
+      if (!grid[hexKey]) {
+        grid[hexKey] = {
+          center: [hexX, hexY],
+          population: 0
+        };
       }
+      
+      // Увеличиваем население в гексагоне
+      grid[hexKey].population += point.intensity;
     });
     
-    return heatmapData;
-  }
-  
-  /**
-   * Вычисляет центр полигона по его координатам
-   * @private
-   * @param {Array} coordinates Массив координат полигона
-   * @returns {Object} Объект с широтой и долготой центра
-   */
-  _calculatePolygonCenter(coordinates) {
-    // Простое вычисление среднего значения координат
-    const sumLat = coordinates.reduce((sum, coord) => sum + parseFloat(coord[1]), 0);
-    const sumLng = coordinates.reduce((sum, coord) => sum + parseFloat(coord[0]), 0);
+    // Преобразуем гексагоны в GeoJSON
+    Object.values(grid).forEach((hex, index) => {
+      // Создаем примерный шестиугольник вокруг центра
+      const vertices = 6;
+      const radius = hexSize * 0.8;
+      const [centerX, centerY] = hex.center;
+      const coordinates = [];
+      
+      for (let i = 0; i < vertices; i++) {
+        const angle = (Math.PI / 3) * i;
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+        coordinates.push([x, y]);
+      }
+      
+      // Замыкаем полигон
+      coordinates.push(coordinates[0]);
+      
+      // Создаем GeoJSON Feature
+      features.push({
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [coordinates]
+        },
+        properties: {
+          h3: `mock-hex-${index}`,
+          population: Math.round(hex.population)
+        }
+      });
+    });
     
     return {
-      lat: sumLat / coordinates.length,
-      lng: sumLng / coordinates.length
+      type: 'FeatureCollection',
+      features: features
     };
-  }
-  
-  /**
-   * Конвертирует координаты из WebMercator (EPSG:3857) в LatLng (EPSG:4326)
-   * @private
-   * @param {number} x Координата X в WebMercator
-   * @param {number} y Координата Y в WebMercator
-   * @returns {Object} Объект с координатами {lat, lng}
-   */
-  _webMercatorToLatLng(x, y) {
-    const earthRadius = 6378137; // Радиус Земли в метрах
-    
-    // Конвертируем x координату из метров в радианы
-    const lng = (x / earthRadius) * (180 / Math.PI);
-    
-    // Конвертируем y координату из метров в радианы
-    const lat = (Math.atan(Math.exp(y / earthRadius)) - (Math.PI / 4)) * 2 * (180 / Math.PI);
-    
-    return { lat, lng };
   }
 }
 

@@ -11,6 +11,7 @@ import numpy as np
 from shapely.geometry import Point, Polygon
 from sqlalchemy.orm import Session
 from models.database import get_db, FacilityModel
+from constants.facilities import COVERAGE_RADIUS
 
 # Загрузка переменных окружения
 load_dotenv()
@@ -148,7 +149,7 @@ async def get_openai_recommendations(request_data: AIRecommendationRequest) -> A
         
         # Формируем тело запроса
         data = {
-            "model": "gpt-4o-mini",
+            "model": "gpt-4o",
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -185,79 +186,118 @@ async def get_openai_recommendations(request_data: AIRecommendationRequest) -> A
         print(f"Error in OpenAI request: {str(e)}")
         # Возвращаем локальные рекомендации в случае ошибки
 
-
 def get_system_prompt():
     """
-    Возвращает системный промпт для OpenAI API
+    Возвращает системный промпт для OpenAI API с учетом полигона города и данных по объектам
     """
-    return """You are an expert in infrastructure planning and geographic optimization.
+    city_polygon_coords = [
+        [74.575221, 42.787354],
+        [74.599471, 42.823306],
+        [74.649990, 42.795139],
+        [74.670198, 42.842571],
+        [74.763659, 42.868866],
+        [74.655547, 42.911802],
+        [74.599471, 42.953968],
+        [74.519650, 42.900700],
+        [74.421641, 42.878122],
+        [74.476203, 42.825159],
+        [74.526722, 42.824789]
+    ]
+    facility_weights = COVERAGE_RADIUS  # Используем радиусы как веса для алгоритма
+    return f"""CRITICAL INSTRUCTIONS - MUST BE FOLLOWED EXACTLY:
 
-Your task is to analyze the provided geospatial data, including:
-- Locations of existing facilities
-- The geographic boundary of the city of Bishkek
+1. POLYGON BOUNDARY VALIDATION:
+   - City boundary polygon: {city_polygon_coords}
+   - EVERY coordinate MUST be STRICTLY INSIDE this polygon
+   - Use ray casting algorithm to verify each point is inside
+   - NO points on edges or outside boundaries allowed
+   - Add safety buffer of 0.001 degrees from polygon edges
 
-Based on this data, recommend optimal new locations for infrastructure objects.
+2. OUTPUT FORMAT - STRICT COMPLIANCE:
+   - Response MUST be ONLY valid GeoJSON - no explanations, no additional text
+   - Start with {{ and end with }}
+   - Exactly 6 features minimum
+   - Each point format: [longitude, latitude] (longitude first)
 
-You MUST strictly follow these instructions:
-1. Recommend only locations that fall strictly **within the official boundary of Bishkek**.
-2. Provide **exact geographic coordinates** for each recommended location in the format: [longitude, latitude].
-3. Ensure that each recommendation is based on **coverage analysis** — avoid areas already well covered, and prioritize underserved zones.
-4. Avoid overlapping coverage with existing facilities.
-5. Aim for **balanced and efficient distribution** across the entire city.
-6. Return your response as a **valid GeoJSON object** only — no extra explanations or formatting.
+3. FACILITY ANALYSIS:
+   - Existing facility weights: {facility_weights}
+   - Analyze coverage gaps using weighted distance
+   - Minimum 500m distance between new recommendations
+   - PRIORITY UNDERDEVELOPED ZONE: {[[74.446171, 42.888538], [74.555247, 42.892399], [74.452587, 42.854614], [74.536686, 42.830083]]}
+   - THIS ZONE REQUIRES SPECIAL ATTENTION - allocate at least 40% of recommendations here
+   - Prioritize other underserved areas (especially northwestern region)
 
-The final output must be a properly formatted GeoJSON object, for example:
+4. VALIDATION CHECKLIST (verify before output):
+   ✓ All coordinates inside polygon boundary
+   ✓ Valid GeoJSON structure
+   ✓ No additional text or explanations
+   ✓ Longitude/latitude order correct
+   ✓ At least 6 recommendations
+   ✓ Proper spacing between points
 
-{
+REQUIRED OUTPUT STRUCTURE:
+{{
   "type": "FeatureCollection",
   "features": [
-    {
+    {{
       "type": "Feature",
-      "geometry": {
+      "geometry": {{
         "type": "Point",
         "coordinates": [longitude, latitude]
-      },
-      "properties": {
-        "name": "Recommended Location 1",
+      }},
+      "properties": {{
+        "name": "Location 1",
         "type": "recommendation",
-        "reason": "Justification for this location based on coverage gap or spatial need"
-      }
-    }
-    // Add more features as needed
+        "reason": "Coverage gap analysis result"
+      }}
+    }}
   ]
-}
-"""
+}}
+
+FAILURE TO COMPLY WITH POLYGON BOUNDARIES WILL RESULT IN REJECTION."""
 
 
 def format_prompt_for_ai(request_data: AIRecommendationRequest):
     """
-    Форматирует запрос для OpenAI API
+    Форматирует запрос для OpenAI API с усиленными ограничениями
     """
     facility_type = request_data.target_facility_type
     area_bounds = request_data.area_information.bounds if request_data.area_information else "Not provided"
     existing_facilities = request_data.existing_facilities or []
     count = request_data.recommendations_count
     
-    # Создание понятного промпта для AI
-    prompt = f"""
-I need recommendations for optimal placement of {count} new {facility_type} facilities.
+    prompt = f"""TASK: Find {count} optimal locations for {facility_type} facilities.
 
-Area boundaries:
-{json.dumps(area_bounds.__dict__ if hasattr(area_bounds, '__dict__') else area_bounds, indent=2)}
+POLYGON BOUNDARY (coordinates in [longitude, latitude]):
+{json.dumps([
+    [74.575221, 42.787354], [74.599471, 42.823306], [74.649990, 42.795139],
+    [74.670198, 42.842571], [74.763659, 42.868866], [74.655547, 42.911802],
+    [74.599471, 42.953968], [74.519650, 42.900700], [74.421641, 42.878122],
+    [74.476203, 42.825159], [74.526722, 42.824789]
+], indent=2)}
 
-There are {len(existing_facilities)} existing facilities in the area with the following details:
-{json.dumps([{
-    "type": f.type,
-    "coordinates": f.coordinates,
-    "coverage_radius": f.coverage_radius if f.coverage_radius else "Not specified"
-} for f in existing_facilities], indent=2)}
+EXISTING FACILITIES ({len(existing_facilities)} total):
+{json.dumps([
+    {
+        "type": f.type,
+        "coordinates": f.coordinates,
+        "coverage_radius": f.coverage_radius if f.coverage_radius else 500
+    } for f in existing_facilities
+], indent=2)}
 
-Please analyze this information and recommend {count} optimal locations for new {facility_type} facilities.
-Your response should be a valid GeoJSON object with type "FeatureCollection" containing {count} "Feature" objects.
-Each feature should have "Point" geometry with coordinates [longitude, latitude] and properties including "name", "type": "recommendation", and "reason" explaining why this location is recommended.
-"""
+MANDATORY REQUIREMENTS:
+1. ALL {count} coordinates MUST be STRICTLY INSIDE the polygon boundary
+2. Minimum 500m spacing between recommendations
+3. Response format: ONLY valid GeoJSON FeatureCollection
+4. NO explanatory text outside GeoJSON
+5. Prioritize coverage gaps and underserved areas
+
+VERIFY EACH COORDINATE IS INSIDE POLYGON BEFORE FINALIZING RESPONSE.
+
+Expected response: Valid GeoJSON with {count} Point features."""
     
     return prompt
+
 
 def extract_recommendations_from_response(response_text, request_data: AIRecommendationRequest):
     """

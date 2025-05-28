@@ -1,67 +1,79 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
-import L, { popup } from 'leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat';
+import api from '../utils/apiInstance';
+import { COVERAGE_RADIUS, FACILITY_COLORS } from '../constants/facilities';
+import PopulationHexagonLayer from './PopulationHexagonLayer';
 
-// Кастомные иконки для разных типов учреждений
+// Заменяем иконки на простые цветные маркеры для объектов
 const facilityIcons = {
-  school: new L.Icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/2602/2602414.png',
-    iconSize: [35, 35],
-    iconAnchor: [17, 35],
-    popupAnchor: [0, -35],
-    radius: 2
+  school: new L.DivIcon({
+    className: 'custom-div-icon',
+    html: `<div style="background-color: #4CAF50; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+    iconSize: [15, 15],
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -7],
+    radius: COVERAGE_RADIUS.school
   }),
-  hospital: new L.Icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/2785/2785482.png',
-    iconSize: [35, 35],
-    iconAnchor: [17, 35],
-    popupAnchor: [0, -35],
-    radius: 1
+  hospital: new L.DivIcon({
+    className: 'custom-div-icon',
+    html: `<div style="background-color: #F44336; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+    iconSize: [15, 15],
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -7],
+    radius: COVERAGE_RADIUS.hospital
   }),
-  clinic: new L.Icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/2982/2982466.png',
-    iconSize: [35, 35],
-    iconAnchor: [17, 35],
-    popupAnchor: [0, -35],
-    radius: 2
+  clinic: new L.DivIcon({
+    className: 'custom-div-icon',
+    html: `<div style="background-color: #FF9800; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+    iconSize: [15, 15],
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -7],
+    radius: COVERAGE_RADIUS.clinic
   }),
-  kindergarten: new L.Icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/3597/3597071.png',
-    iconSize: [35, 35],
-    iconAnchor: [17, 35],
-    popupAnchor: [0, -35],
-    radius: 1.5
+  kindergarten: new L.DivIcon({
+    className: 'custom-div-icon',
+    html: `<div style="background-color: #9C27B0; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+    iconSize: [15, 15],
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -7],
+    radius: COVERAGE_RADIUS.kindergarten
   }),
-  college: new L.Icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/214/214282.png',
-    iconSize: [35, 35],
-    iconAnchor: [17, 35],
-    popupAnchor: [0, -35],
-    radius: 2
+  college: new L.DivIcon({
+    className: 'custom-div-icon',
+    html: `<div style="background-color: #2196F3; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+    iconSize: [15, 15],
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -7],
+    radius: COVERAGE_RADIUS.college
   }),
-  university: new L.Icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/2957/2957872.png',
-    iconSize: [35, 35],
-    iconAnchor: [17, 35],
-    popupAnchor: [0, -35],
-    radius: 5
+  university: new L.DivIcon({
+    className: 'custom-div-icon',
+    html: `<div style="background-color: #3F51B5; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+    iconSize: [15, 15],
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -7],
+    radius: COVERAGE_RADIUS.university
   }),
-  fire_station: new L.Icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/4108/4108894.png',
-    iconSize: [35, 35],
-    iconAnchor: [17, 35],
-    popupAnchor: [0, -35],
-    radius: 5
+  fire_station: new L.DivIcon({
+    className: 'custom-div-icon',
+    html: `<div style="background-color: #FF5722; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+    iconSize: [15, 15],
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -7],
+    radius: COVERAGE_RADIUS.fire_station
   }),
 };
 
-const recommendIcon = new L.Icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/512/7710/7710488.png',
-  iconSize: [35, 35],
-  iconAnchor: [17, 35],
-  popupAnchor: [0, -35],
+// Маркер для рекомендуемых местоположений - сделаем его ярче и крупнее
+const recommendIcon = new L.DivIcon({
+  className: 'custom-div-icon recommendation-marker',
+  html: `<div style="background-color: #FF4500; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>`,
+  iconSize: [22, 22],
+  iconAnchor: [11, 11],
+  popupAnchor: [0, -10],
 });
 
 // Компонент для отслеживания границ карты
@@ -85,7 +97,7 @@ function BoundsHandler({ onBoundsChange }) {
       boundsRef.current = boundsObj;
       onBoundsChange(boundsObj);
     }
-  }, [map]); // Only depend on map instance changes
+  }, [map]);  // Only depend on map instance changes
 
   return null;
 }
@@ -93,26 +105,36 @@ function BoundsHandler({ onBoundsChange }) {
 // Компонент для создания тепловой карты
 function HeatmapLayerComponent({ points }) {
   const map = useMap();
+  const heatLayerRef = useRef();
   
   useEffect(() => {
     if (!points || points.length === 0) return;
 
+    // Удаляем предыдущий слой, если он существует
+    if (heatLayerRef.current) {
+      map.removeLayer(heatLayerRef.current);
+    }
+
     const heatData = points.map(point => [
       point.lat,
       point.lng,
-      point.intensity
+      point.intensity / 100 // Нормализуем интенсивность для лучшей визуализации
     ]);
 
     const heatLayer = L.heatLayer(heatData, { 
-      radius: 20,
+      radius: 25,
       blur: 15,
       maxZoom: 17,
-      max: 100,
-      gradient: { 0.4: 'blue', 0.6: 'lime', 0.8: 'yellow', 1.0: 'red' }
+      max: 1.0,
+      gradient: { 0.4: 'blue', 0.6: 'cyan', 0.7: 'lime', 0.8: 'yellow', 1.0: 'red' }
     }).addTo(map);
 
+    heatLayerRef.current = heatLayer;
+
     return () => {
-      map.removeLayer(heatLayer);
+      if (heatLayerRef.current) {
+        map.removeLayer(heatLayerRef.current);
+      }
     };
   }, [map, points]);
 
@@ -121,8 +143,18 @@ function HeatmapLayerComponent({ points }) {
 
 
 // Слушает drop на карте и рисует маркер и круг с popup
-function DropHandler({ radius }) {
+function DropHandler({ facilityType }) {
   const map = useMap();
+  const markersRef = useRef([]);
+
+  // Очищаем пользовательские маркеры при смене типа учреждения
+  useEffect(() => {
+    if (markersRef.current.length > 0) {
+      markersRef.current.forEach(marker => map.removeLayer(marker));
+      markersRef.current = [];
+    }
+  }, [facilityType, map]);
+
   useEffect(() => {
     const handleDrop = e => {
       e.preventDefault();
@@ -131,17 +163,26 @@ function DropHandler({ radius }) {
       const point = [e.clientX - rect.left, e.clientY - rect.top];
       const latlng = map.containerPointToLatLng(point);
       const icon = facilityIcons[type] || facilityIcons.school;
-      const iconRadius = icon.options?.radius || radius;
+      const iconRadius = COVERAGE_RADIUS[type] || 2;
       const r = iconRadius * 1000;
-      L.marker([latlng.lat, latlng.lng], { icon }).addTo(map);
-      L.popup()
-        .setLatLng(latlng)
-      L.circle([latlng.lat, latlng.lng], {
+      
+      // Создаем маркер и сохраняем ссылку
+      const marker = L.marker([latlng.lat, latlng.lng], { icon }).addTo(map);
+      markersRef.current.push(marker);
+      
+      // Создаем popup и сохраняем ссылку
+      const popup = L.popup()
+        .setLatLng(latlng);
+      markersRef.current.push(popup);
+      
+      // Создаем круг и сохраняем ссылку
+      const circle = L.circle([latlng.lat, latlng.lng], {
         color: 'red',
         fillColor: '#f03',
         // fillOpacity: 0.5,
         radius: r
       }).addTo(map);
+      markersRef.current.push(circle);
     };
     const container = map.getContainer();
     container.addEventListener('dragover', e => e.preventDefault());
@@ -150,41 +191,74 @@ function DropHandler({ radius }) {
       container.removeEventListener('dragover', e => e.preventDefault());
       container.removeEventListener('drop', handleDrop);
     };
-  }, [map, radius]);
+  }, [map]);
   return null;
 }
 
-const MapView = ({ facilities, recommendations, onBoundsChange, facilityType, coverageRadius }) => {
-  const [showHeatmap, setShowHeatmap] = useState(false);
-  const [populationData, setPopulationData] = useState([]);
+const MapView = ({ 
+  facilities, 
+  recommendations, 
+  onBoundsChange, 
+  facilityType, 
+  coverageRadius, 
+  showHeatmap, 
+  heatmapIntensity,
+  showHexagons = false,
+  hexagonOpacity = 0.7
+}) => {
+  const [populationData, setPopulationData] = React.useState([]);
+  const [isPopulationLoading, setIsPopulationLoading] = React.useState(false);
+  const [internalFacilities, setInternalFacilities] = React.useState([]);
+  const [internalRecommendations, setInternalRecommendations] = React.useState([]);
+
+  // Обновляем internalFacilities при изменении props.facilities
+  React.useEffect(() => {
+    setInternalFacilities(facilities);
+  }, [facilities]);
+
+  // Обновляем internalRecommendations при изменении props.recommendations
+  React.useEffect(() => {
+    setInternalRecommendations(recommendations);
+  }, [recommendations]);
+
+  // При смене типа объекта очищаем internalFacilities и internalRecommendations
+  React.useEffect(() => {
+    setInternalFacilities([]);
+    setInternalRecommendations([]);
+  }, [facilityType]);
+
+  // Загрузка данных о населении
+  useEffect(() => {
+    if (showHeatmap && populationData.length === 0 && !isPopulationLoading) {
+      setIsPopulationLoading(true);
+      
+      api.loadPopulationData()
+        .then(data => {
+          console.log('Loaded population data:', data.length, 'points');
+          setPopulationData(data);
+        })
+        .catch(err => {
+          console.error('Failed to load population data:', err);
+        })
+        .finally(() => {
+          setIsPopulationLoading(false);
+        });
+    }
+  }, [showHeatmap, populationData.length, isPopulationLoading]);
 
   // Функция для определения цвета круга в зависимости от типа учреждения
   const getCircleColor = (type) => {
-    const colors = {
-      'school': '#4CAF50',       // Зеленый
-      'hospital': '#F44336',     // Красный
-      'clinic': '#FF9800',       // Оранжевый
-      'kindergarten': '#9C27B0', // Фиолетовый
-      'college': '#2196F3',      // Синий
-      'university': '#3F51B5',   // Индиго
-      'fire_station': '#FF5722'  // Красно-оранжевый
-    };
-    
-    return colors[type] || '#607D8B'; // Серый по умолчанию
+    return FACILITY_COLORS[type] || '#607D8B'; // Серый по умолчанию
   };
 
   return (
     <div className="map-container">
-      <div className="heat-layer-selector">
-        <label>
-          <input
-            type="checkbox"
-            checked={showHeatmap}
-            onChange={() => setShowHeatmap(!showHeatmap)}
-          />
-          Показать плотность населения
-        </label>
-      </div>
+      {isPopulationLoading && (
+        <div className="map-loading-overlay">
+          <div className="loading-spinner"></div>
+          <p>Загрузка данных о населении...</p>
+        </div>
+      )}
       
       <MapContainer
         center={[42.8740, 74.6122]}
@@ -197,14 +271,23 @@ const MapView = ({ facilities, recommendations, onBoundsChange, facilityType, co
         />
         
         <BoundsHandler onBoundsChange={onBoundsChange} />
-        {/* <ClickHandler /> */}
-        <DropHandler radius={coverageRadius} />
+        <DropHandler facilityType={facilityType} />
         
-        {showHeatmap && (
-          <HeatmapLayerComponent points={populationData} />
+        {/* Слой тепловой карты */}
+        {showHeatmap && populationData.length > 0 && (
+          <HeatmapLayerComponent 
+            points={populationData} 
+            intensity={heatmapIntensity / 100}
+          />
         )}
         
-        {facilities.map((facility, idx) => (
+        {/* Слой с гексагонами плотности населения */}
+        <PopulationHexagonLayer 
+          visible={showHexagons} 
+          opacity={hexagonOpacity}
+        />
+        
+        {internalFacilities.map((facility, idx) => (
           <React.Fragment key={`facility-${idx}`}>
             <Marker 
               position={[facility.latitude, facility.longitude]} 
@@ -232,16 +315,16 @@ const MapView = ({ facilities, recommendations, onBoundsChange, facilityType, co
           </React.Fragment>
         ))}
         
-        {recommendations.map((rec, idx) => (
+        {internalRecommendations.map((rec, idx) => (
           <React.Fragment key={`rec-${idx}`}>
             <Marker 
               position={[rec.latitude, rec.longitude]} 
               icon={recommendIcon}
             >
               <Popup>
-                <div>
+                <div className="recommendation-popup">
                   <h3>Рекомендуемая локация #{idx + 1}</h3>
-                  <p>Оценка: {(rec.score * 100).toFixed(1)}%</p>
+                  <p>Оценка: <strong>{(rec.score * 100).toFixed(1)}%</strong></p>
                   <p>Координаты: {rec.latitude.toFixed(5)}, {rec.longitude.toFixed(5)}</p>
                 </div>
               </Popup>
@@ -250,10 +333,10 @@ const MapView = ({ facilities, recommendations, onBoundsChange, facilityType, co
               center={[rec.latitude, rec.longitude]}
               radius={coverageRadius * 1000} // Используем радиус в метрах из props
               pathOptions={{ 
-                fillColor: 'blue', 
-                fillOpacity: 0.1, 
-                color: 'blue', 
-                opacity: 0.5,
+                fillColor: '#FF4500', 
+                fillOpacity: 0.12, 
+                color: '#FF4500', 
+                opacity: 0.7,
                 weight: 2,
                 dashArray: '5, 5' // Пунктирный круг для рекомендаций
               }}
