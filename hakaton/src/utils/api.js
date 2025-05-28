@@ -25,7 +25,7 @@ class Api {
    */
   async getFacilities(facilityType, bounds) {
     try {
-      const response = await this.client.get(`/facilities/${facilityType}`, {
+      const response = await this.client.get(`/facilities/type/${facilityType}`, {
         params: {
           min_lat: bounds.south,
           min_lon: bounds.west,
@@ -95,6 +95,42 @@ class Api {
     }
   }
 
+  /**
+   * Получает список всех учреждений для карты в указанных границах
+   * @param {Object} bounds Границы области {north, south, east, west}
+   * @returns {Promise<Array>} Массив учреждений
+   */
+  async getMapFacilities(bounds) {
+    try {
+      const response = await this.client.get('/facilities/', {
+        params: {
+          min_lat: bounds.south,
+          min_lon: bounds.west,
+          max_lat: bounds.north,
+          max_lon: bounds.east
+        }
+      });
+      
+      // Отфильтровать только нужные типы объектов
+      const validTypes = ['school', 'clinic', 'hospital', 'college', 'kindergarten', 'university'];
+      return response.data.filter(facility => validTypes.includes(facility.facility_type));
+    } catch (error) {
+      console.error('Error fetching map facilities:', error);
+      
+      // Генерируем мок-данные разных типов
+      const allFacilities = [];
+      const types = ['school', 'clinic', 'hospital', 'college', 'kindergarten', 'university'];
+      
+      types.forEach(type => {
+        const count = 2 + Math.floor(Math.random() * 5); // 2-6 объектов каждого типа
+        const facilities = this._mockFacilities(type, bounds, count);
+        allFacilities.push(...facilities);
+      });
+      
+      return allFacilities;
+    }
+  }
+
   // Вспомогательные методы для создания мок-данных
   
   _mockFacilities(type, bounds, count) {
@@ -146,4 +182,5 @@ class Api {
   }
 }
 
-export default new Api(API_URL);
+const api = new Api(API_URL);
+export default api;

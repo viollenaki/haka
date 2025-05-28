@@ -7,6 +7,7 @@ const Header = () => {
       <h1>InfraMap Recommender</h1>
       <nav>
         <Link to="/" style={{ color: 'white', marginRight: '15px' }}>Главная</Link>
+        <Link to="/kepler-map" style={{ color: 'white', marginRight: '15px' }}>Kepler Map</Link>
         <Link to="/about" style={{ color: 'white' }}>О проекте</Link>
       </nav>
     </header>

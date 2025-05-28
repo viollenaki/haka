@@ -24,7 +24,10 @@ class DataService:
             'school': {'amenity': ['school']},
             'hospital': {'amenity': ['hospital']},
             'pharmacy': {'amenity': ['pharmacy']},
-            'fire_station': {'amenity': ['fire_station']}
+            'fire_station': {'amenity': ['fire_station']},
+            'centre': {'amenity': ['community_centre', 'social_centre', 'centre']},
+            'optometric': {'amenity': ['optician', 'optometrist', 'optometric']},
+            'clinic': {'amenity': ['clinic', 'health_centre']}
         }
         
         if facility_type not in tags:

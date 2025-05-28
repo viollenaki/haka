@@ -11,6 +11,9 @@ from sqlalchemy import create_engine
 import os
 from dotenv import load_dotenv
 
+# Подключаем роутеры
+from routers.facilities import router as facilities_router
+
 # Загрузка переменных окружения
 load_dotenv()
 
@@ -51,26 +54,8 @@ class RecommendationResponse(BaseModel):
 async def root():
     return {"message": "Welcome to GovFacility Recommender API"}
 
-@app.get("/facilities/{facility_type}")
-async def get_facilities(facility_type: str):
-    # Здесь будет код для получения существующих объектов определенного типа
-    # (школы, больницы, пожарные станции) из OSM или другого источника
-    pass
-
-@app.get("/population-density")
-async def get_population_density(
-    min_lat: float = Query(...), 
-    min_lon: float = Query(...), 
-    max_lat: float = Query(...), 
-    max_lon: float = Query(...)
-):
-    # Здесь будет код для получения данных о плотности населения
-    pass
-
-@app.post("/recommend")
-async def recommend_locations(request: RecommendationRequest):
-    # Здесь будет основная логика рекомендаций
-    pass
+# Подключаем роутер объектов - изменяем префикс с /api на /
+app.include_router(facilities_router, prefix="")  # Было prefix="/api"
 
 if __name__ == "__main__":
     import uvicorn

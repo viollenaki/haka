@@ -9,24 +9,32 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
+    "assert": "^2.1.0",
     "axios": "^1.6.8",
     "chart.js": "^4.4.2",
+    "kepler.gl": "^2.5.5",
     "leaflet": "^1.9.4",
     "leaflet.heat": "^0.2.0",
     "mapbox-gl": "^3.2.0",
+    "querystring-es3": "^0.2.1",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.2.0",
     "react-leaflet": "^4.2.1",
     "react-map-gl": "^7.1.7",
+    "react-redux": "^8.0.5",
     "react-router-dom": "^6.22.3",
     "react-scripts": "5.0.1",
+    "redux": "^4.2.1",
+    "redux-thunk": "^2.4.2",
+    "styled-components": "^5.3.10",
+    "url": "^0.11.4",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -46,5 +54,15 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "browserify-zlib": "^0.2.0",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.1",
+    "customize-cra": "^1.0.0",
+    "path-browserify": "^1.0.1",
+    "process": "^0.11.10",
+    "react-app-rewired": "^2.2.1",
+    "stream-browserify": "^3.0.0"
   }
 }
