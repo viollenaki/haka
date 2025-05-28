@@ -4,7 +4,6 @@ import './App.css';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import MapView from './components/MapView';
-import RecommendationPanel from './components/RecommendationPanel';
 import AboutPage from './pages/AboutPage';
 import api from './utils/api';
 import radiusData from './radius.json';
@@ -133,9 +132,6 @@ function App() {
                     onBoundsChange={handleMapBoundsChange}
                     facilityType={selectedFacilityType}
                     coverageRadius={coverageRadius}
-                  />
-                  <RecommendationPanel 
-                    recommendations={recommendations}
                   />
                 </main>
               </>
