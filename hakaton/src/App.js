@@ -7,6 +7,8 @@ import MapView from './components/MapView';
 import AnalysisPanel from './components/AnalysisPanel';
 import RecommendationPanel from './components/RecommendationPanel';
 import AboutPage from './pages/AboutPage';
+import KeplerMapPage from './pages/KeplerMapPage';
+import api from './utils/api';
 
 function App() {
   const [selectedFacilityType, setSelectedFacilityType] = useState('school');
@@ -28,12 +30,16 @@ function App() {
 
     setIsAnalysisLoading(true);
     try {
-      // Здесь будет вызов API для получения данных
-      const response = await fetch(`http://localhost:8001/facilities/${selectedFacilityType}?min_lat=${mapBounds.south}&min_lon=${mapBounds.west}&max_lat=${mapBounds.north}&max_lon=${mapBounds.east}`);
+      // Используем API класс для получения данных
+      let data;
+      if (selectedFacilityType === 'all') {
+        // Получаем все типы учреждений для карты
+        data = await api.getMapFacilities(mapBounds);
+      } else {
+        // Получаем учреждения выбранного типа
+        data = await api.getFacilities(selectedFacilityType, mapBounds);
+      }
       
-      if (!response.ok) throw new Error('Failed to fetch facilities');
-      
-      const data = await response.json();
       setFacilities(data);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -105,6 +111,7 @@ function App() {
               </>
             } />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/kepler-map" element={<KeplerMapPage />} />
           </Routes>
         </div>
       </div>

@@ -26,6 +26,30 @@ const facilityIcons = {
     iconAnchor: [17, 35],
     popupAnchor: [0, -35],
   }),
+  clinic: new L.Icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/2982/2982466.png',
+    iconSize: [35, 35],
+    iconAnchor: [17, 35],
+    popupAnchor: [0, -35],
+  }),
+  kindergarten: new L.Icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/3597/3597071.png',
+    iconSize: [35, 35],
+    iconAnchor: [17, 35],
+    popupAnchor: [0, -35],
+  }),
+  college: new L.Icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/214/214282.png',
+    iconSize: [35, 35],
+    iconAnchor: [17, 35],
+    popupAnchor: [0, -35],
+  }),
+  university: new L.Icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/2957/2957872.png',
+    iconSize: [35, 35],
+    iconAnchor: [17, 35],
+    popupAnchor: [0, -35],
+  }),
   fire_station: new L.Icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/4108/4108894.png',
     iconSize: [35, 35],

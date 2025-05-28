@@ -16,3 +16,5 @@ python-dotenv
 pydantic
 requests
 aiohttp
+pymysql
+sqlalchemy_utils
