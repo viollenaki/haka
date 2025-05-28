@@ -108,3 +108,23 @@ export const createColorScale = (min, max) => {
     return colors[index];
   };
 };
+
+/**
+ * Получает радиус охвата для заданного типа учреждения
+ * @param {Array} coverageData Массив данных о радиусах охвата
+ * @param {string} facilityType Тип учреждения
+ * @param {string} areaType Тип местности ('urban' или 'rural')
+ * @returns {number} Радиус охвата в километрах
+ */
+export const getCoverageRadius = (coverageData, facilityType, areaType = 'urban') => {
+  if (!coverageData || !coverageData.length) return 2; // Значение по умолчанию
+  
+  const facilityInfo = coverageData.find(item => item.type === facilityType);
+  
+  if (!facilityInfo || !facilityInfo.radius_km || !facilityInfo.radius_km[areaType]) {
+    return 2; // Значение по умолчанию, если данные не найдены
+  }
+  
+  // Возвращаем максимальный радиус
+  return facilityInfo.radius_km[areaType][1];
+};
