@@ -98,7 +98,7 @@ async def get_ai_recommendations(
                 FacilityModel.latitude <= area_bounds.north,
                 FacilityModel.longitude >= area_bounds.west,
                 FacilityModel.longitude <= area_bounds.east
-            ).all()
+            ).all() # type: ignore
             
             # Преобразуем объекты из БД в формат FacilityData
             for facility in db_facilities:
@@ -126,7 +126,7 @@ async def get_ai_recommendations(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating AI recommendations: {str(e)}")
 
-async def get_openai_recommendations(request_data: AIRecommendationRequest) -> AIRecommendationResponse:
+async def get_openai_recommendations(request_data: AIRecommendationRequest) -> AIRecommendationResponse: # type: ignore
     """
     Получает рекомендации от OpenAI API для размещения объектов с использованием HTTP requests
     
@@ -134,16 +134,7 @@ async def get_openai_recommendations(request_data: AIRecommendationRequest) -> A
         request_data: Данные запроса для генерации рекомендаций
     """
     try:
-        # Проверка наличия API ключа
-        if not OPENAI_API_KEY:
-            print("API ключ OpenAI не найден! Генерируем локальные рекомендации.")
-            return generate_recommendations(
-                facility_type=request_data.target_facility_type,
-                bounds=request_data.area_information.bounds if request_data.area_information else None,
-                existing_facilities=request_data.existing_facilities or [],
-                count=request_data.recommendations_count,
-                facility_types_info=request_data.facility_types or []
-            )
+
         
         # Подготовка промпта для OpenAI
         system_prompt = get_system_prompt()
@@ -168,7 +159,7 @@ async def get_openai_recommendations(request_data: AIRecommendationRequest) -> A
         
         # Отправляем запрос к API OpenAI с помощью requests
         print("Sending request to OpenAI API...")
-        print(f"API key первые 5 символов: {OPENAI_API_KEY[:5]}...")
+        print(f"API key первые 5 символов: {OPENAI_API_KEY[:5]}...") # type: ignore
         response = requests.post(OPENAI_API_URL, headers=headers, json=data)
         
         # Проверяем статус ответа
@@ -176,16 +167,7 @@ async def get_openai_recommendations(request_data: AIRecommendationRequest) -> A
             error_msg = f"OpenAI API returned error: {response.status_code}, {response.text}"
             print(error_msg)
             
-            # Если ошибка связана с API-ключом, используем локальную генерацию
-            if response.status_code == 401:
-                print("Проблема с аутентификацией API. Генерируем локальные рекомендации.")
-                return generate_recommendations(
-                    facility_type=request_data.target_facility_type,
-                    bounds=request_data.area_information.bounds if request_data.area_information else None,
-                    existing_facilities=request_data.existing_facilities or [],
-                    count=request_data.recommendations_count,
-                    facility_types_info=request_data.facility_types or []
-                )
+
             
             raise HTTPException(status_code=response.status_code, detail=error_msg)
             
@@ -202,31 +184,50 @@ async def get_openai_recommendations(request_data: AIRecommendationRequest) -> A
     except Exception as e:
         print(f"Error in OpenAI request: {str(e)}")
         # Возвращаем локальные рекомендации в случае ошибки
-        return generate_recommendations(
-            facility_type=request_data.target_facility_type,
-            bounds=request_data.area_information.bounds if request_data.area_information else None,
-            existing_facilities=request_data.existing_facilities or [],
-            count=request_data.recommendations_count,
-            facility_types_info=request_data.facility_types or []
-        )
+
 
 def get_system_prompt():
     """
     Возвращает системный промпт для OpenAI API
     """
     return """You are an expert in infrastructure planning and geographic optimization.
-Your task is to analyze the provided data about existing facilities and area boundaries,
-and recommend optimal locations for new facilities.
 
-You MUST follow these requirements:
-1. Provide exact longitude and latitude coordinates for each recommended location
-2. Give a reason for each recommendation based on coverage analysis
-3. Return your recommendations in valid GeoJSON format
-4. Consider existing facility coverage and avoid overlap
-5. Aim for optimal distribution across the provided area
+Your task is to analyze the provided geospatial data, including:
+- Locations of existing facilities
+- The geographic boundary of the city of Bishkek
 
-Your response should ONLY contain a valid GeoJSON object with recommended locations.
+Based on this data, recommend optimal new locations for infrastructure objects.
+
+You MUST strictly follow these instructions:
+1. Recommend only locations that fall strictly **within the official boundary of Bishkek**.
+2. Provide **exact geographic coordinates** for each recommended location in the format: [longitude, latitude].
+3. Ensure that each recommendation is based on **coverage analysis** — avoid areas already well covered, and prioritize underserved zones.
+4. Avoid overlapping coverage with existing facilities.
+5. Aim for **balanced and efficient distribution** across the entire city.
+6. Return your response as a **valid GeoJSON object** only — no extra explanations or formatting.
+
+The final output must be a properly formatted GeoJSON object, for example:
+
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [longitude, latitude]
+      },
+      "properties": {
+        "name": "Recommended Location 1",
+        "type": "recommendation",
+        "reason": "Justification for this location based on coverage gap or spatial need"
+      }
+    }
+    // Add more features as needed
+  ]
+}
 """
+
 
 def format_prompt_for_ai(request_data: AIRecommendationRequest):
     """
