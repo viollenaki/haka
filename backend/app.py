@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 
 # Подключаем роутеры
 from routers.facilities import router as facilities_router
+from routers.ai_recommendations import router as ai_recommendations_router  # Добавляем импорт роутера AI рекомендаций
 
 # Загрузка переменных окружения
 load_dotenv()
@@ -54,8 +55,9 @@ class RecommendationResponse(BaseModel):
 async def root():
     return {"message": "Welcome to GovFacility Recommender API"}
 
-# Подключаем роутер объектов - изменяем префикс с /api на /
-app.include_router(facilities_router, prefix="")  # Было prefix="/api"
+# Подключаем роутеры
+app.include_router(facilities_router, prefix="")
+app.include_router(ai_recommendations_router, prefix="")  # Подключаем роутер AI рекомендаций
 
 if __name__ == "__main__":
     import uvicorn

@@ -70,20 +70,69 @@ class Api {
    * Получает рекомендации для размещения новых учреждений
    * @param {string} facilityType Тип учреждения
    * @param {Object} bounds Границы области {north, south, east, west}
+   * @param {boolean} useAI Использовать ли AI для получения рекомендаций
    * @returns {Promise<Object>} Объект с рекомендациями
    */
-  async getRecommendations(facilityType, bounds) {
+  async getRecommendations(facilityType, bounds, useAI = false) {
     try {
-      const response = await this.client.post('/recommend', {
-        facility_type: facilityType,
-        area_bounds: {
-          min_lat: bounds.south,
-          min_lon: bounds.west,
-          max_lat: bounds.north,
-          max_lon: bounds.east
+      const existingFacilities = await this.getFacilities(facilityType, bounds);
+      
+      // Формируем запрос с информацией о существующих объектах
+      const requestBody = {
+        target_facility_type: facilityType,
+        area_information: {
+          bounds: {
+            north: bounds.north,
+            south: bounds.south,
+            east: bounds.east,
+            west: bounds.west
+          },
+          center: {
+            lat: (bounds.north + bounds.south) / 2,
+            lng: (bounds.east + bounds.west) / 2
+          },
+          area_size_km2: this._calculateAreaSize(bounds)
+        },
+        existing_facilities: existingFacilities.map(facility => ({
+          type: facility.type || facilityType,
+          coordinates: [facility.longitude, facility.latitude],
+          name: facility.name,
+          coverage_radius: {"radius": 1.0} // Определяем стандартный радиус покрытия
+        })),
+        recommendations_count: 5,
+        request_type: "optimal_placement"
+      };
+      
+      console.log('Sending AI recommendation request:', JSON.stringify(requestBody).substring(0, 500) + '...');
+      
+      try {
+        // Отправляем запрос к API
+        const response = await this.client.post('/ai/recommend', requestBody, {
+          params: { use_openai: useAI }
+        });
+        
+        console.log('Received AI recommendation response:', response.data);
+        
+        // Преобразуем GeoJSON ответ в формат, понятный клиенту
+        const features = response.data.features || [];
+        return {
+          locations: features.map(feature => ({
+            latitude: feature.geometry.coordinates[1],
+            longitude: feature.geometry.coordinates[0],
+            name: feature.properties.name || "Рекомендуемая локация",
+            reason: feature.properties.reason || "Рекомендовано AI",
+            score: feature.properties.score || 0.8
+          })),
+          improvement_score: response.data.improvement_score || 50
+        };
+      } catch (apiError) {
+        console.error('API Error:', apiError);
+        if (apiError.response) {
+          console.error('Response data:', apiError.response.data);
+          console.error('Response status:', apiError.response.status);
         }
-      });
-      return response.data;
+        throw new Error(apiError.response?.data?.detail || 'Ошибка сервера при получении рекомендаций');
+      }
     } catch (error) {
       console.error('Error getting recommendations:', error);
       
@@ -93,6 +142,29 @@ class Api {
         improvement_score: 25 + Math.random() * 50
       };
     }
+  }
+  
+  /**
+   * Вычисляет примерную площадь области в кв. км
+   * @private
+   * @param {Object} bounds Границы области
+   * @returns {number} Площадь в кв. км
+   */
+  _calculateAreaSize(bounds) {
+    const R = 6371; // Радиус Земли в км
+    const dLat = (bounds.north - bounds.south) * Math.PI / 180;
+    const dLon = (bounds.east - bounds.west) * Math.PI / 180;
+    const lat1 = bounds.south * Math.PI / 180;
+    const lat2 = bounds.north * Math.PI / 180;
+    
+    // Приближенная формула для небольших территорий
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.sin(dLon/2) * Math.sin(dLon/2) * 
+              Math.cos(lat1) * Math.cos(lat2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const area = R * R * c;
+    
+    return Math.round(area * 10) / 10; // Округляем до 1 десятичного знака
   }
 
   /**

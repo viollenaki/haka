@@ -27,9 +27,14 @@ const RecommendationPanel = ({ recommendations }) => {
       <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
         {recommendations.map((rec, idx) => (
           <div key={idx} className="recommendation-item">
-            <strong>Локация #{idx + 1}</strong>
+            <strong>{rec.name || `Локация #${idx + 1}`}</strong>
             <div>Координаты: {rec.latitude.toFixed(5)}, {rec.longitude.toFixed(5)}</div>
             <div>Оценка: <span style={{ color: getScoreColor(rec.score) }}>{(rec.score * 100).toFixed(1)}%</span></div>
+            {rec.reason && (
+              <div className="recommendation-reason">
+                <small>{rec.reason}</small>
+              </div>
+            )}
           </div>
         ))}
       </div>
