@@ -11,42 +11,49 @@ const facilityIcons = {
     iconSize: [35, 35],
     iconAnchor: [17, 35],
     popupAnchor: [0, -35],
+    radius: 2
   }),
   hospital: new L.Icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/2785/2785482.png',
     iconSize: [35, 35],
     iconAnchor: [17, 35],
     popupAnchor: [0, -35],
+    radius: 1
   }),
   clinic: new L.Icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/2982/2982466.png',
     iconSize: [35, 35],
     iconAnchor: [17, 35],
     popupAnchor: [0, -35],
+    radius: 2
   }),
   kindergarten: new L.Icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/3597/3597071.png',
     iconSize: [35, 35],
     iconAnchor: [17, 35],
     popupAnchor: [0, -35],
+    radius: 1.5
   }),
   college: new L.Icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/214/214282.png',
     iconSize: [35, 35],
     iconAnchor: [17, 35],
     popupAnchor: [0, -35],
+    radius: 2
   }),
   university: new L.Icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/2957/2957872.png',
     iconSize: [35, 35],
     iconAnchor: [17, 35],
     popupAnchor: [0, -35],
+    radius: 5
   }),
   fire_station: new L.Icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/4108/4108894.png',
     iconSize: [35, 35],
     iconAnchor: [17, 35],
     popupAnchor: [0, -35],
+    radius: 5
   }),
 };
 
@@ -112,40 +119,28 @@ function HeatmapLayerComponent({ points }) {
   return null;
 }
 
-// Показывает popup при клике на карту
-function ClickHandler() {
-  const map = useMap();
-  useEffect(() => {
-    const handleClick = e => {
-      L.popup()
-        .setLatLng(e.latlng)
-      // Добавляем круг на карту
-      L.circle([e.latlng.lat, e.latlng.lng], {
-        color: 'red',
-        fillColor: '#f03',
-        fillOpacity: 0.5,
-        radius: 1000
-      }).addTo(map);
-    };
-    map.on('click', handleClick);
-    return () => map.off('click', handleClick);
-  }, [map]);
-  return null;
-}
 
-// Слушает drop на карте и рисует круг с popup
+// Слушает drop на карте и рисует маркер и круг с popup
 function DropHandler({ radius }) {
   const map = useMap();
   useEffect(() => {
     const handleDrop = e => {
       e.preventDefault();
+      const type = e.dataTransfer.getData('facilityType');
       const rect = map.getContainer().getBoundingClientRect();
       const point = [e.clientX - rect.left, e.clientY - rect.top];
       const latlng = map.containerPointToLatLng(point);
+      const icon = facilityIcons[type] || facilityIcons.school;
+      const iconRadius = icon.options?.radius || radius;
+      const r = iconRadius * 1000;
+      L.marker([latlng.lat, latlng.lng], { icon }).addTo(map);
       L.popup()
         .setLatLng(latlng)
       L.circle([latlng.lat, latlng.lng], {
-        color: 'red', fillColor: '#f03', fillOpacity: 0.5, radius: radius * 500
+        color: 'red',
+        fillColor: '#f03',
+        // fillOpacity: 0.5,
+        radius: r
       }).addTo(map);
     };
     const container = map.getContainer();
@@ -202,7 +197,7 @@ const MapView = ({ facilities, recommendations, onBoundsChange, facilityType, co
         />
         
         <BoundsHandler onBoundsChange={onBoundsChange} />
-        <ClickHandler />
+        {/* <ClickHandler /> */}
         <DropHandler radius={coverageRadius} />
         
         {showHeatmap && (
