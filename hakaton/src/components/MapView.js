@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -68,27 +68,25 @@ const recommendIcon = new L.Icon({
 // Компонент для отслеживания границ карты
 function BoundsHandler({ onBoundsChange }) {
   const map = useMap();
+  const boundsRef = useRef();
 
   useEffect(() => {
     if (!map) return;
-
-    const updateBounds = () => {
-      const bounds = map.getBounds();
-      onBoundsChange({
-        north: bounds.getNorth(),
-        south: bounds.getSouth(),
-        east: bounds.getEast(),
-        west: bounds.getWest(),
-      });
+    const currentBounds = map.getBounds();
+    const boundsObj = {
+      north: currentBounds.getNorth(),
+      south: currentBounds.getSouth(),
+      east: currentBounds.getEast(),
+      west: currentBounds.getWest()
     };
-
-    map.on('moveend', updateBounds);
-    updateBounds(); // Инициализация
-
-    return () => {
-      map.off('moveend', updateBounds);
-    };
-  }, [map, onBoundsChange]);
+    
+    // Store previous bounds in a ref to compare
+    if (!boundsRef.current || 
+        JSON.stringify(boundsRef.current) !== JSON.stringify(boundsObj)) {
+      boundsRef.current = boundsObj;
+      onBoundsChange(boundsObj);
+    }
+  }, [map]); // Only depend on map instance changes
 
   return null;
 }
