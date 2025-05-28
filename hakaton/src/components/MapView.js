@@ -1,16 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
-import L from 'leaflet';
+import L, { popup } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat';
-
-// Исправление проблемы с иконками Leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
 
 // Кастомные иконки для разных типов учреждений
 const facilityIcons = {
@@ -120,30 +112,56 @@ function HeatmapLayerComponent({ points }) {
   return null;
 }
 
+// Показывает popup при клике на карту
+function ClickHandler() {
+  const map = useMap();
+  useEffect(() => {
+    const handleClick = e => {
+      L.popup()
+        .setLatLng(e.latlng)
+      // Добавляем круг на карту
+      L.circle([e.latlng.lat, e.latlng.lng], {
+        color: 'red',
+        fillColor: '#f03',
+        fillOpacity: 0.5,
+        radius: 1000
+      }).addTo(map);
+    };
+    map.on('click', handleClick);
+    return () => map.off('click', handleClick);
+  }, [map]);
+  return null;
+}
+
+// Слушает drop на карте и рисует круг с popup
+function DropHandler({ radius }) {
+  const map = useMap();
+  useEffect(() => {
+    const handleDrop = e => {
+      e.preventDefault();
+      const rect = map.getContainer().getBoundingClientRect();
+      const point = [e.clientX - rect.left, e.clientY - rect.top];
+      const latlng = map.containerPointToLatLng(point);
+      L.popup()
+        .setLatLng(latlng)
+      L.circle([latlng.lat, latlng.lng], {
+        color: 'red', fillColor: '#f03', fillOpacity: 0.5, radius: radius * 500
+      }).addTo(map);
+    };
+    const container = map.getContainer();
+    container.addEventListener('dragover', e => e.preventDefault());
+    container.addEventListener('drop', handleDrop);
+    return () => {
+      container.removeEventListener('dragover', e => e.preventDefault());
+      container.removeEventListener('drop', handleDrop);
+    };
+  }, [map, radius]);
+  return null;
+}
+
 const MapView = ({ facilities, recommendations, onBoundsChange, facilityType, coverageRadius }) => {
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [populationData, setPopulationData] = useState([]);
-
-  // Загрузка данных о плотности населения при изменении границ карты
-  useEffect(() => {
-    const fetchPopulationData = async () => {
-      try {
-        // Имитация загрузки данных о плотности населения
-        // В реальном приложении здесь был бы запрос к API
-        const mockData = Array.from({ length: 200 }, () => ({
-          lat: 55.5 + Math.random() * 0.3, // Примерные координаты
-          lng: 37.5 + Math.random() * 0.3,
-          intensity: Math.random() * 100
-        }));
-        
-        setPopulationData(mockData);
-      } catch (error) {
-        console.error('Failed to load population data:', error);
-      }
-    };
-
-    fetchPopulationData();
-  }, [onBoundsChange]);
 
   // Функция для определения цвета круга в зависимости от типа учреждения
   const getCircleColor = (type) => {
@@ -174,7 +192,7 @@ const MapView = ({ facilities, recommendations, onBoundsChange, facilityType, co
       </div>
       
       <MapContainer
-        center={[42.8740, 74.6122]} // Бишкек
+        center={[42.8740, 74.6122]}
         zoom={13}
         style={{ height: '100%', width: '100%' }}
       >
@@ -184,6 +202,8 @@ const MapView = ({ facilities, recommendations, onBoundsChange, facilityType, co
         />
         
         <BoundsHandler onBoundsChange={onBoundsChange} />
+        <ClickHandler />
+        <DropHandler radius={coverageRadius} />
         
         {showHeatmap && (
           <HeatmapLayerComponent points={populationData} />
