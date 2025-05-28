@@ -3,12 +3,18 @@ import { Link } from 'react-router-dom';
 
 const Header = () => {
   return (
-    <header className="header">
-      <h1>InfraMap Recommender</h1>
-      <nav>
-        <Link to="/" style={{ color: 'white', marginRight: '15px' }}>Главная</Link>
-        <Link to="/about" style={{ color: 'white' }}>О проекте</Link>
-      </nav>
+    <header className="app-header">
+      <div className="header-content">
+        <Link to="/" className="logo">
+          InfraMap Recommender
+        </Link>
+        <nav className="nav-links">
+          <Link to="/" className="nav-link">Карта</Link>
+          <Link to="/population" className="nav-link">Население</Link>
+          <Link to="/hexmap" className="nav-link">Гексагоны</Link>
+          <Link to="/about" className="nav-link">О проекте</Link>
+        </nav>
+      </div>
     </header>
   );
 };

@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
+
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import MapView from './components/MapView';
+import FacilityPanel from './components/FacilityPanel';
 import AboutPage from './pages/AboutPage';
-import api from './utils/api';
+import PopulationPage from './pages/PopulationPage';
+import HexagonMap from './components/HexagonMap';
+
+// Импорт вспомогательных файлов
+import api from './utils/apiInstance';
 import radiusData from './radius.json';
-import FacilityPanel from './components/Facility/Facility';
 
 function App() {
   const [selectedFacilityType, setSelectedFacilityType] = useState('school');
@@ -136,6 +141,12 @@ function App() {
                   />
                 </main>
               </>
+            } />
+            <Route path="/population" element={<PopulationPage />} />
+            <Route path="/hexmap" element={
+              <React.Suspense fallback={<div>Загрузка карты гексагонов...</div>}>
+                <HexagonMap />
+              </React.Suspense>
             } />
             <Route path="/about" element={<AboutPage />} />
           </Routes>

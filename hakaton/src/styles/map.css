@@ -1,0 +1,44 @@
+.map-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  background-color: white;
+  padding: 10px;
+  border-radius: 4px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+}
+
+.heat-layer-selector {
+  margin-bottom: 10px;
+}
+
+.heat-layer-legend {
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+.legend-title {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.legend-gradient {
+  height: 10px;
+  display: flex;
+  margin-bottom: 2px;
+}
+
+.legend-gradient span {
+  flex: 1;
+}
+
+.legend-labels {
+  display: flex;
+  justify-content: space-between;
+}
+
+.loading-indicator {
+  font-style: italic;
+  color: #666;
+}
