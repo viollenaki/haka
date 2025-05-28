@@ -77,31 +77,32 @@ function App() {
 
   const handleGetRecommendations = async () => {
     if (!mapBounds) return;
-
+    
+    setIsAnalysisLoading(true);
     try {
-      // Здесь будет вызов API для получения рекомендаций
-      const response = await fetch('http://localhost:8001/recommend', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          facility_type: selectedFacilityType,
-          area_bounds: {
-            min_lat: mapBounds.south,
-            min_lon: mapBounds.west,
-            max_lat: mapBounds.north,
-            max_lon: mapBounds.east
-          }
-        }),
-      });
+      // Используем метод из API вместо прямого fetch
+      const recommendationsData = await api.getRecommendations(
+        selectedFacilityType, 
+        mapBounds,
+        true // использовать AI для генерации рекомендаций
+      );
       
-      if (!response.ok) throw new Error('Failed to get recommendations');
-      
-      const data = await response.json();
-      setRecommendations(data.locations);
+      // Установка полученных рекомендаций
+      if (recommendationsData && recommendationsData.locations) {
+        setRecommendations(recommendationsData.locations);
+        // Показываем количество полученных рекомендаций
+        console.log(`Получено ${recommendationsData.locations.length} рекомендаций`);
+      } else {
+        console.error('Invalid recommendations data format', recommendationsData);
+        setRecommendations([]);
+        alert('Не удалось получить рекомендации. Проверьте консоль для деталей.');
+      }
     } catch (error) {
       console.error('Error getting recommendations:', error);
+      setRecommendations([]);
+      alert(`Ошибка при получении рекомендаций: ${error.message || 'Неизвестная ошибка'}`);
+    } finally {
+      setIsAnalysisLoading(false);
     }
   };
 
