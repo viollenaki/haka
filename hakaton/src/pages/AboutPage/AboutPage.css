@@ -1,0 +1,91 @@
+
+.about-page {
+  max-width: 800px;
+  max-height: 920px;
+  margin: 0 auto;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  color: #333;
+}
+
+.about-page h1 {
+  color: #2c3e50;
+  font-size: 2rem;
+  margin-bottom: 15px;
+  text-align: center;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 10px;
+}
+
+.about-page section {
+  margin-bottom: 15px;
+  background-color: white;
+  padding: 12px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.about-page h2 {
+  color: #3498db;
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+  border-left: 4px solid #3498db;
+  padding-left: 8px;
+}
+
+.about-page h3 {
+  color: #2980b9;
+  font-size: 1.5rem;
+  margin: 8px 0;
+}
+
+.about-page ul {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+
+.about-page li {
+  margin-bottom: 5px;
+  line-height: 1.6;
+  list-style-type: circle;
+}
+
+.about-page li:hover {
+  color: #3498db;
+}
+
+.about-page p {
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.about-page a {
+  display: inline-block;
+  color: white;
+  background-color: #3498db;
+  padding: 8px 15px;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.about-page a:hover {
+  background-color: #2980b9;
+  text-decoration: none;
+}
+
+@media (max-width: 600px) {
+  .about-page {
+    padding: 10px;
+  }
+  
+  .about-page h1 {
+    font-size: 1.6rem;
+  }
+  
+  .about-page h2 {
+    font-size: 1.3rem;
+  }
+}

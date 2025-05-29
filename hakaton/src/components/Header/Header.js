@@ -7,7 +7,7 @@ const Header = () => {
     <header className="app-header">
       <div className="header-content">
         <h1 className="logo">
-          InfraMap Recommender
+          PopMap Recommender
         </h1>
         <nav className="nav-links">
           <Link to="/" className="nav-link">Карта</Link>
