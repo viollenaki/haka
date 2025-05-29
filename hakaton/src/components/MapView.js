@@ -17,7 +17,9 @@ const MapView = ({
   showHexagons = false,
   hexagonOpacity = 0.7,
   hexagonData,
-  hexagonMode = false // Новый параметр для определения режима отображения только гексагонов
+  hexagonMode = false,
+  allowFacilityDrop = true,
+  onFacilityAdded = null
 }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -555,6 +557,133 @@ const MapView = ({
 
     return () => clearTimeout(timer);
   }, [showHexagons, hexagonData, hexagonOpacity, mapLoaded, hexagonMode, cleanupLayer]);
+
+  // New function to handle drag and drop functionality
+  const setupDragAndDrop = useCallback(() => {
+    if (!map.current || !mapLoaded || !allowFacilityDrop) return;
+    
+    const container = map.current.getContainer();
+    
+    const handleDragOver = (e) => {
+      e.preventDefault(); // Необходимо для разрешения события drop
+    };
+    
+    const handleDrop = (e) => {
+      e.preventDefault();
+      
+      // Получаем тип учреждения из события перетаскивания
+      const type = e.dataTransfer.getData('facilityType');
+      if (!type) return;
+      
+      // Получаем координаты на карте из позиции события
+      const rect = container.getBoundingClientRect();
+      const point = [e.clientX - rect.left, e.clientY - rect.top];
+      const lngLat = map.current.unproject(point);
+      
+      // Определяем радиус покрытия для данного типа объекта
+      const radius = COVERAGE_RADIUS[type] || coverageRadius || 2; // в км
+      
+      // Создаем уникальные ID для слоев
+      const markerId = `marker-${Date.now()}`;
+      const circleId = `circle-${Date.now()}`;
+      
+      // Добавляем источник данных для маркера
+      map.current.addSource(markerId, {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {
+            type: type,
+            name: `Новый объект: ${type}`
+          },
+          geometry: {
+            type: 'Point',
+            coordinates: [lngLat.lng, lngLat.lat]
+          }
+        }
+      });
+      
+      // Добавляем маркер
+      map.current.addLayer({
+        id: markerId,
+        type: 'circle',
+        source: markerId,
+        paint: {
+          'circle-radius': 8,
+          'circle-color': FACILITY_COLORS[type] || '#888',
+          'circle-stroke-color': 'white',
+          'circle-stroke-width': 2
+        }
+      });
+      
+      // Добавляем круг радиуса покрытия
+      map.current.addSource(circleId, {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {
+            radius: radius
+          },
+          geometry: {
+            type: 'Point',
+            coordinates: [lngLat.lng, lngLat.lat]
+          }
+        }
+      });
+      
+      map.current.addLayer({
+        id: circleId,
+        type: 'circle',
+        source: circleId,
+        paint: {
+          'circle-radius': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            10, ['*', ['get', 'radius'], 10],
+            15, ['*', ['get', 'radius'], 100]
+          ],
+          'circle-color': FACILITY_COLORS[type] || '#888',
+          'circle-opacity': 0.15,
+          'circle-stroke-color': FACILITY_COLORS[type] || '#888',
+          'circle-stroke-width': 1,
+          'circle-stroke-opacity': 0.5
+        }
+      });
+      
+      // Показываем popup
+      new mapboxgl.Popup()
+        .setLngLat([lngLat.lng, lngLat.lat])
+      
+      // Если предоставлена функция обратного вызова, вызываем её с новым объектом
+      if (onFacilityAdded && typeof onFacilityAdded === 'function') {
+        onFacilityAdded({
+          type,
+          latitude: lngLat.lat,
+          longitude: lngLat.lng,
+          coverageRadius: radius
+        });
+      }
+    };
+    
+    // Добавляем обработчики событий
+    container.addEventListener('dragover', handleDragOver);
+    container.addEventListener('drop', handleDrop);
+    
+    // Возвращаем функцию очистки
+    return () => {
+      container.removeEventListener('dragover', handleDragOver);
+      container.removeEventListener('drop', handleDrop);
+    };
+  }, [map, mapLoaded, coverageRadius, allowFacilityDrop, onFacilityAdded]);
+  
+  // Инициализация обработчиков drag-and-drop
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+    
+    const cleanup = setupDragAndDrop();
+    return cleanup;
+  }, [mapLoaded, setupDragAndDrop]);
 
   return (
     <div ref={mapContainer} style={{ height: '100%', width: '100%' }} />

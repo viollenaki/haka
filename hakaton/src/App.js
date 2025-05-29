@@ -7,7 +7,7 @@ import './App.css';
 import Header from './components/Header/Header.js';
 import Sidebar from './components/SideBar/Sidebar.js';
 import MapView from './components/MapView';
-import FacilityPanel from './components/FacilityPanel';
+import FacilityPanel from './components/Facility/Facility';
 import AboutPage from './pages/AboutPage';
 import PopulationPage from './pages/PopulationPage';
 import HexagonMap from './components/HexagonMap';
@@ -171,6 +171,12 @@ function App() {
     }
   };
   
+  const handleFacilityAdded = (newFacility) => {
+    // Handle the new facility - perhaps add it to state
+    console.log('New facility added:', newFacility);
+    // Update your facilities state here if needed
+  };
+  
   // Инициализация радиуса при первой загрузке
   useEffect(() => {
     updateCoverageRadius(selectedFacilityType);
@@ -220,6 +226,8 @@ function App() {
                     hexagonOpacity={hexagonOpacity}
                     hexagonData={hexagonData}
                     hexagonMode={hexagonMode} // Передаем флаг режима гексагонов
+                    allowFacilityDrop={true}
+                    onFacilityAdded={handleFacilityAdded}
                   />
                 </main>
               </>
