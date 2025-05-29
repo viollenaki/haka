@@ -1,104 +1,86 @@
-import React, { useState, useEffect } from 'react';
-import { Polygon, Tooltip } from 'react-leaflet';
-import api from '../utils/apiInstance';
+import React, { useEffect, useRef } from 'react';
+import mapboxgl from 'mapbox-gl';
+
+mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN || 'your_mapbox_token_here';
 
 /**
  * Компонент для отображения плотности населения в виде гексагональной сетки
  */
-const PopulationHexagonLayer = ({ visible, resolution = 8, opacity = 0.7 }) => {
-  const [hexData, setHexData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [maxPopulation, setMaxPopulation] = useState(1000);
+const PopulationHexagonLayer = ({ visible, geojsonData, opacity = 0.7 }) => {
+  const mapContainer = useRef(null);
+  const map = useRef(null);
 
-  // Загрузка данных о гексагонах при первом рендере
   useEffect(() => {
-    if (visible && hexData.length === 0 && !loading) {
-      loadHexagonData();
-    }
-  }, [visible]);
+    if (!visible) return;
 
-  // Загрузка данных о гексагонах
-  const loadHexagonData = async () => {
-    setLoading(true);
-    try {
-      // Получаем данные о населении в формате гексагонов
-      const data = await api.getPopulationHexagons();
-      
-      if (data && data.features && data.features.length > 0) {
-        // Находим максимальную популяцию для нормализации цвета
-        const populations = data.features.map(f => f.properties.population || 0);
-        const maxPop = Math.max(...populations, 1000);
-        
-        setMaxPopulation(maxPop);
-        setHexData(data.features);
-        
-        console.log(`Загружено ${data.features.length} гексагонов. Максимальная популяция: ${maxPop}`);
-      } else {
-        console.warn('Не удалось загрузить данные о гексагонах или данные пусты');
+    if (map.current) return;
+
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [74.6122, 42.8740],
+      zoom: 12
+    });
+
+    map.current.on('load', () => {
+      if (!geojsonData) return;
+
+      map.current.addSource('hexagons', {
+        type: 'geojson',
+        data: geojsonData
+      });
+
+      map.current.addLayer({
+        id: 'hexagons-fill',
+        type: 'fill',
+        source: 'hexagons',
+        paint: {
+          'fill-color': [
+            'interpolate',
+            ['linear'],
+            ['get', 'population'],
+            0, '#0571b0',
+            0.2, '#6baed6',
+            0.4, '#74c476',
+            0.6, '#fd8d3c',
+            0.8, '#de2d26'
+          ],
+          'fill-opacity': opacity
+        }
+      });
+
+      map.current.on('click', 'hexagons-fill', (e) => {
+        const feature = e.features[0];
+        const coordinates = e.lngLat;
+        const { h3, population } = feature.properties;
+
+        new mapboxgl.Popup()
+          .setLngLat(coordinates)
+          .setHTML(`<h4>Информация о зоне</h4><p><strong>H3 индекс:</strong> ${h3}</p><p><strong>Население:</strong> ${population}</p>`)
+          .addTo(map.current);
+      });
+
+      map.current.on('mouseenter', 'hexagons-fill', () => {
+        map.current.getCanvas().style.cursor = 'pointer';
+      });
+      map.current.on('mouseleave', 'hexagons-fill', () => {
+        map.current.getCanvas().style.cursor = '';
+      });
+    });
+
+    return () => {
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
       }
-    } catch (error) {
-      console.error('Ошибка при загрузке данных гексагонов:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+  }, [visible, geojsonData, opacity]);
 
-  // Получает цвет для гексагона в зависимости от плотности населения
-  const getHexColor = (population) => {
-    // Нормализуем значение между 0 и 1
-    const normalizedValue = Math.min(population / maxPopulation, 1);
-    
-    if (normalizedValue < 0.2) return '#0571b0'; // Синий
-    if (normalizedValue < 0.4) return '#6baed6'; // Голубой
-    if (normalizedValue < 0.6) return '#74c476'; // Зеленый
-    if (normalizedValue < 0.8) return '#fd8d3c'; // Оранжевый
-    return '#de2d26'; // Красный
-  };
-
-  if (!visible || hexData.length === 0) {
+  if (!visible) {
     return null;
   }
 
-  return (
-    <>
-      {hexData.map((feature, idx) => {
-        if (!feature.geometry || 
-            feature.geometry.type !== 'Polygon' || 
-            !feature.geometry.coordinates || 
-            !feature.geometry.coordinates[0]) {
-          return null;
-        }
-        
-        const population = feature.properties?.population || 0;
-        const hexId = feature.properties?.h3 || `hex-${idx}`;
-        
-        // Преобразуем координаты из формата GeoJSON [lon, lat] в [lat, lon] для Leaflet
-        const positions = feature.geometry.coordinates[0].map(
-          coord => [coord[1], coord[0]]
-        );
-        
-        return (
-          <Polygon
-            key={hexId}
-            positions={positions}
-            pathOptions={{
-              fillColor: getHexColor(population),
-              weight: 1,
-              opacity: 0.5,
-              color: '#666',
-              fillOpacity: opacity
-            }}
-          >
-            <Tooltip direction="center">
-              <div>
-                <strong>Население:</strong> {population}
-              </div>
-            </Tooltip>
-          </Polygon>
-        );
-      })}
-    </>
-  );
+  return <div ref={mapContainer} style={{ height: '100%', width: '100%' }} />;
 };
 
 export default PopulationHexagonLayer;

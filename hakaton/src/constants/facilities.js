@@ -24,6 +24,17 @@ export const FACILITY_COLORS = {
   fire_station: '#FF5722'  // Красно-оранжевый
 };
 
+// Более яркие цвета для рекомендуемых объектов
+export const RECOMMENDATION_COLORS = {
+  school: '#FF3D3D',       // Ярко-красный
+  hospital: '#FF1C1C',     // Насыщенный красный
+  clinic: '#FF5252',       // Светло-красный
+  kindergarten: '#FF0000', // Чистый красный
+  college: '#E60000',      // Темно-красный
+  university: '#FF6666',   // Розово-красный
+  fire_station: '#CC0000'  // Глубокий красный
+};
+
 // Русские названия типов объектов
 export const FACILITY_NAMES = {
   school: 'Школа',

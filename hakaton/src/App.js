@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 
+
+
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import MapView from './components/MapView';
@@ -27,6 +29,10 @@ function App() {
   // Добавляем состояние для гексагонов
   const [showHexagons, setShowHexagons] = useState(false);
   const [hexagonOpacity, setHexagonOpacity] = useState(0.7);
+  const [hexagonData, setHexagonData] = useState(null);
+
+  // Новое состояние для режима гексагонов (когда видны только гексагоны)
+  const [hexagonMode, setHexagonMode] = useState(false);
 
   // Находит и устанавливает радиус для выбранного типа учреждения
   const updateCoverageRadius = (facilityType) => {
@@ -41,6 +47,10 @@ function App() {
   const handleFacilityTypeChange = (type) => {
     setSelectedFacilityType(type);
     updateCoverageRadius(type);
+    
+    // Очищаем предыдущие данные при смене типа учреждения
+    setFacilities([]);
+    setRecommendations([]);
     
     // Автоматически запускаем анализ при изменении типа учреждения
     if (mapBounds) {
@@ -98,11 +108,16 @@ function App() {
         true // использовать AI для генерации рекомендаций
       );
       
-      // Установка полученных рекомендаций
+      // Установка полученных рекомендаций с добавлением типа учреждения
       if (recommendationsData && recommendationsData.locations) {
-        setRecommendations(recommendationsData.locations);
+        const locationsWithType = recommendationsData.locations.map(loc => ({
+          ...loc,
+          type: selectedFacilityType // Добавляем тип учреждения к каждой рекомендации
+        }));
+        setRecommendations(locationsWithType);
+        
         // Показываем количество полученных рекомендаций
-        console.log(`Получено ${recommendationsData.locations.length} рекомендаций`);
+        console.log(`Получено ${locationsWithType.length} рекомендаций`);
       } else {
         console.error('Invalid recommendations data format', recommendationsData);
         setRecommendations([]);
@@ -117,10 +132,43 @@ function App() {
     }
   };
 
+  // Функция для загрузки данных гексагонов
+  const loadHexagonData = async () => {
+    if (showHexagons && !hexagonData) {
+      setIsAnalysisLoading(true);
+      try {
+        const data = await api.getPopulationHexagons();
+        setHexagonData(data);
+        console.log(`Загружено ${data.features?.length || 0} гексагонов`);
+      } catch (error) {
+        console.error('Error fetching hexagon data:', error);
+      } finally {
+        setIsAnalysisLoading(false);
+      }
+    }
+  };
+  
+  // Обработчик переключения режима гексагонов
+  const handleHexagonModeToggle = (enabled) => {
+    setShowHexagons(enabled);
+    setHexagonMode(enabled); // Устанавливаем режим гексагонов
+    
+    if (enabled && !hexagonData) {
+      loadHexagonData();
+    }
+  };
+  
   // Инициализация радиуса при первой загрузке
   useEffect(() => {
     updateCoverageRadius(selectedFacilityType);
   }, []);
+
+  // Вызываем загрузку гексагонов при изменении showHexagons
+  useEffect(() => {
+    if (showHexagons) {
+      loadHexagonData();
+    }
+  }, [showHexagons]);
 
   return (
     <Router>
@@ -141,9 +189,10 @@ function App() {
                   heatmapIntensity={heatmapIntensity}
                   setHeatmapIntensity={setHeatmapIntensity}
                   showHexagons={showHexagons}
-                  setShowHexagons={setShowHexagons}
+                  setShowHexagons={handleHexagonModeToggle}  // Передаём новый обработчик
                   hexagonOpacity={hexagonOpacity}
                   setHexagonOpacity={setHexagonOpacity}
+                  onHexagonLayerToggle={() => loadHexagonData()}
                 />
                 <main className="main-content">
                   <MapView 
@@ -152,10 +201,12 @@ function App() {
                     onBoundsChange={handleMapBoundsChange}
                     facilityType={selectedFacilityType}
                     coverageRadius={coverageRadius}
-                    showHeatmap={showHeatmap}
+                    showHeatmap={showHeatmap && !hexagonMode} // Показываем heatmap только если не в режиме гексагонов
                     heatmapIntensity={heatmapIntensity}
                     showHexagons={showHexagons}
                     hexagonOpacity={hexagonOpacity}
+                    hexagonData={hexagonData}
+                    hexagonMode={hexagonMode} // Передаем флаг режима гексагонов
                   />
                 </main>
               </>

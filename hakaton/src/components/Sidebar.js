@@ -13,9 +13,25 @@ const Sidebar = ({
   showHexagons,
   setShowHexagons,
   hexagonOpacity,
-  setHexagonOpacity
+  setHexagonOpacity,
+  onHexagonLayerToggle
 }) => {
-  const [activeTab, setActiveTab] = useState('facilities'); // facilities, population, hexagons
+  const [activeTab, setActiveTab] = useState('facilities'); // facilities, hexagons
+  
+  // Обработчик переключения вкладок
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    
+    // Автоматически выключаем режим гексагонов при переходе на другую вкладку
+    if (tab !== 'hexagons' && showHexagons) {
+      setShowHexagons(false);
+    }
+    
+    // Если выбрали вкладку гексагонов, вызываем загрузку данных
+    if (tab === 'hexagons' && onHexagonLayerToggle) {
+      onHexagonLayerToggle();
+    }
+  };
 
   return (
     <div className="sidebar">
@@ -25,19 +41,14 @@ const Sidebar = ({
       <div className="sidebar-tabs">
         <button 
           className={`tab-button ${activeTab === 'facilities' ? 'active' : ''}`}
-          onClick={() => setActiveTab('facilities')}
+          onClick={() => handleTabChange('facilities')}
         >
           Объекты инфраструктуры
         </button>
-        <button 
-          className={`tab-button ${activeTab === 'population' ? 'active' : ''}`}
-          onClick={() => setActiveTab('population')}
-        >
-          Тепловая карта
-        </button>
+
         <button 
           className={`tab-button ${activeTab === 'hexagons' ? 'active' : ''}`}
-          onClick={() => setActiveTab('hexagons')}
+          onClick={() => handleTabChange('hexagons')}
         >
           Гексагоны
         </button>
@@ -228,7 +239,10 @@ const Sidebar = ({
                 <input
                   type="checkbox"
                   checked={showHexagons}
-                  onChange={() => setShowHexagons(!showHexagons)}
+                  onChange={() => {
+                    const newValue = !showHexagons;
+                    setShowHexagons(newValue); // Этот обработчик теперь переключает режим гексагонов
+                  }}
                 />
                 <span className="label-text">Показать гексагоны населения</span>
               </label>
@@ -236,6 +250,12 @@ const Sidebar = ({
             
             {showHexagons && (
               <>
+                <div className="mode-info-box">
+                  <p className="mode-info">
+                    <i className="info-icon">ℹ️</i> Вы находитесь в режиме просмотра гексагонов. Другие слои временно скрыты.
+                  </p>
+                </div>
+                
                 <div className="control-group">
                   <label htmlFor="hexOpacity">Непрозрачность:</label>
                   <div className="slider-container">

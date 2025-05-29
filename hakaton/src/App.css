@@ -478,3 +478,49 @@
     transform: rotate(360deg);
   }
 }
+
+/* Стили для информационного сообщения о режиме гексагонов */
+.mode-info-box {
+  background-color: #f8f9fa;
+  border-left: 4px solid #17a2b8;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+.mode-info {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.info-icon {
+  margin-right: 5px;
+}
+
+/* Стили для информационного оверлея на карте */
+.map-info-overlay {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background-color: rgba(23, 162, 184, 0.9);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 4px;
+  font-weight: 500;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+}
+
+.info-content {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.info-content:before {
+  content: "ℹ️";
+  margin-right: 8px;
+}

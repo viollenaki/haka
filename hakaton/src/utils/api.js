@@ -400,7 +400,7 @@ class Api {
       
       this._logError('getPopulationHexagons', error);
       
-      // Используем мок-данные из существующей функции и преобразуем их в гексагоны
+      // Используем мок-данные из импортированной функции
       const bounds = {
         north: 42.9,
         south: 42.8,
@@ -408,7 +408,7 @@ class Api {
         west: 74.5
       };
       
-      const pointData = this.mockPopulationDensity(bounds, 100);
+      const pointData = mockPopulationDensity(bounds, 100);
       return this._convertPointsToHexagons(pointData);
     }
   }
