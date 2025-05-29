@@ -41,6 +41,7 @@ const Sidebar = ({
   };
 
   const labels = {
+    map: "Без слоев",
     school: "Школы",
     hospital: "Больницы",
     clinic: "Клиники",
@@ -77,7 +78,26 @@ const Sidebar = ({
           <div className="facility-type-selector">
             <h3>Тип учреждения</h3>
             
-            {Object.keys(labels).map(type => (
+            {/* Специальная опция "Без слоев" */}
+            <div className="facility-row no-layers-option">
+              <div className="facility-radio">
+                <label className="no-layers-label">
+                  <input 
+                    type="radio" 
+                    name="facilityType" 
+                    value="map"
+                    checked={selectedFacilityType === "map"}
+                    onChange={() => onFacilityTypeChange("map")}
+                  />
+                  <span className="no-layers-text">{labels.map}</span>
+                </label>
+              </div>
+            </div>
+            
+            <div className="separator"></div>
+            
+            {/* Остальные типы учреждений */}
+            {Object.keys(labels).filter(type => type !== "map").map(type => (
               <div key={type} className="facility-row">
                 <div className="facility-radio">
                   <label>

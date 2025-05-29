@@ -121,8 +121,8 @@ const MapView = ({
         cleanupLayer(facilityCircleLayerId);
         cleanupLayer(facilityLayerId);
 
-        // Если мы в режиме гексагонов или нет данных, просто выходим
-        if (hexagonMode || !facilities || facilities.length === 0) return;
+        // Если выбран режим "без слоев" (map), в режиме гексагонов, или нет данных, просто выходим
+        if (facilityType === "map" || hexagonMode || !facilities || facilities.length === 0) return;
 
         // GeoJSON для точек учреждений
         const geojson = {
@@ -252,8 +252,8 @@ const MapView = ({
         cleanupLayer(recommendationCircleLayerId);
         cleanupLayer(recommendationLayerId);
         
-        // Если мы в режиме гексагонов или нет данных, просто выходим
-        if (hexagonMode || !recommendations || recommendations.length === 0) return;
+        // Если выбран режим "без слоев" (map), в режиме гексагонов, или нет данных, просто выходим
+        if (facilityType === "map" || hexagonMode || !recommendations || recommendations.length === 0) return;
 
         const geojson = {
           type: 'FeatureCollection',
@@ -387,8 +387,8 @@ const MapView = ({
         cleanupLayer(heatmapLayerId);
         
         // Проверяем нужно ли показывать тепловую карту
-        // Не показываем в режиме гексагонов
-        if (hexagonMode || !showHeatmap || !facilities || facilities.length === 0) return;
+        // Не показываем в режиме "без слоев", гексагонов
+        if (facilityType === "map" || hexagonMode || !showHeatmap || !facilities || facilities.length === 0) return;
 
         // Подготавливаем данные для тепловой карты
         const heatmapData = {
@@ -468,7 +468,7 @@ const MapView = ({
           return;
         }
 
-        console.log(`Rendering hexagon layer with ${hexagonData.features?.length || 0} hexagons`);
+        console.log(`Rendering hexagon layer with ${hexagonData.features?.length || 0} hexагонов`);
 
         // Добавляем источник данных для гексагонов
         map.current.addSource(hexagonLayerId, {
