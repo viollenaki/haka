@@ -53,12 +53,15 @@ export const mockPopulationDensity = (bounds, count) => {
 };
 
 /**
- * Генерирует мок-данные рекомендаций для разработки
+ * Генерирует мок-данные рекомендации для разработки
  * @param {Object} bounds Границы карты {north, south, east, west}
  * @param {number} count Количество рекомендаций для генерации
- * @returns {Array} Массив рекомендованных локаций
+ * @returns {Promise<Array>} Промис с массивом рекомендованных локаций
  */
-export const mockRecommendations = (bounds, count) => {
+export const mockRecommendations = async (bounds, count) => {
+  // Имитируем задержку сетевого запроса для демонстрации анимации загрузки
+  await new Promise(resolve => setTimeout(resolve, 2500));
+  
   const recommendations = [];
   const { north, south, east, west } = bounds || { 
     north: 42.9, south: 42.8, east: 74.7, west: 74.5 
