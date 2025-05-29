@@ -2,7 +2,7 @@
 .sidebar {
   width: 400px;
   background-color: white;
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md); /* уменьшаем padding */
   overflow-y: auto;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   z-index: 5;
@@ -13,9 +13,9 @@
 
 .sidebar h2 {
   margin-top: 0;
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-md); /* уменьшаем отступ */
   color: var(--primary-color);
-  font-size: 1.4rem;
+  font-size: 1.3rem; /* уменьшаем шрифт */
   text-align: left;
   border-bottom: 2px solid var(--primary-light);
   padding-bottom: 10px;
@@ -23,8 +23,8 @@
 }
 
 .sidebar h3 {
-  margin-top: var(--spacing-lg);
-  margin-bottom: var(--spacing-md);
+  margin-top: var(--spacing-md); /* уменьшаем отступ */
+  margin-bottom: var(--spacing-sm); /* уменьшаем отступ */
   font-size: 1.1rem;
   color: var(--gray-800);
   text-align: left;
@@ -35,11 +35,11 @@
 /* Стили для вкладок в сайдбаре */
 .sidebar-tabs {
   display: flex;
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
   border-bottom: 1px solid var(--gray-300);
   background-color: var(--gray-50);
   border-radius: 8px;
-  padding: 5px;
+  padding: 3px;
 }
 
 .tab-button {
@@ -73,7 +73,7 @@
 }
 
 .tab-content {
-  padding-top: var(--spacing-sm);
+  /* padding-top: var(--spacing-sm); */
   animation: fadeIn 0.3s ease;
 }
 
@@ -93,14 +93,14 @@
 }
 
 .facility-type-selector label {
-  height: 48px;
+  height: 40px; /* было 48px */
   width: 100%;
   display: flex;
   align-items: center;
   cursor: pointer;
   border: 1px solid var(--gray-300);
   border-radius: 8px;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-md);
   margin-bottom: var(--spacing-xs);
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -166,25 +166,25 @@
 .info-box {
   background-color: var(--gray-50);
   border-left: 4px solid var(--primary-color);
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm);
   border-radius: 8px;
   text-align: left;
-  font-size: 0.95rem;
-  margin-top: var(--spacing-xl);
+  font-size: 0.9rem;
+  margin-top: var(--spacing-md);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .info-box h3, .info-box h4 {
   color: var(--primary-color);
   margin-top: 0;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 /* Стили для вкладки гексагонов */
 .tab-content .heat-control-panel {
   background-color: var(--gray-50);
   border-radius: 8px;
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm);
   border: 1px solid var(--gray-300);
 }
 
@@ -245,9 +245,9 @@
 .legend-preview {
   background-color: white;
   border: 1px solid var(--gray-200);
-  padding: var(--spacing-sm);
+  padding: var(--spacing-xs);
   border-radius: 6px;
-  margin: var(--spacing-md) 0;
+  margin: var(--spacing-sm) 0;
 }
 
 .legend-preview h4 {
@@ -290,8 +290,8 @@ input[type="range"].range-slider::-moz-range-thumb {
 
 /* Улучшенные стили для контрольной группы */
 .control-group {
-  margin-bottom: var(--spacing-md);
-  padding: var(--spacing-sm) 0;
+  margin-bottom: var(--spacing-sm);
+  padding: var(--spacing-xs) 0;
 }
 
 /* Улучшенные стили для чекбокса */
@@ -320,4 +320,81 @@ input[type="checkbox"]:checked:after {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+/* Стили для строки с типом объекта и кнопкой добавления */
+.facility-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: var(--spacing-xs); /* уменьшаем отступ */
+}
+
+.facility-radio {
+  flex: 1;
+}
+
+.facility-drag-button {
+  width: 32px; /* было 36px */
+  height: 32px; /* было 36px */
+  border-radius: 50%;
+  background-color: white;
+  border: 2px solid var(--gray-300);
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin-left: var(--spacing-md);
+}
+
+.facility-drag-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.facility-drag-button:active {
+  cursor: grabbing;
+  transform: scale(0.95);
+}
+
+.drag-icon {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--gray-700);
+}
+
+/* Цветовые индикаторы для разных типов объектов */
+.facility-drag-button[data-type="school"] {
+  border-color: var(--school-color, #4285F4);
+}
+
+.facility-drag-button[data-type="hospital"] {
+  border-color: var(--hospital-color, #EA4335);
+}
+
+.facility-drag-button[data-type="clinic"] {
+  border-color: var(--clinic-color, #FBBC05);
+}
+
+.facility-drag-button[data-type="kindergarten"] {
+  border-color: var(--kindergarten-color, #34A853);
+}
+
+.facility-drag-button[data-type="college"] {
+  border-color: var(--college-color, #9C27B0);
+}
+
+.facility-drag-button[data-type="university"] {
+  border-color: var(--university-color, #3F51B5);
+}
+
+.facility-drag-button[data-type="fire_station"] {
+  border-color: var(--fire-station-color, #FF9800);
+}
+
+/* Дополнительные стили для радиокнопок */
+.facility-type-selector label {
+  padding-right: var(--spacing-sm);
 }

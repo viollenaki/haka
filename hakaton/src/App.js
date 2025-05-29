@@ -7,7 +7,6 @@ import './App.css';
 import Header from './components/Header/Header.js';
 import Sidebar from './components/SideBar/Sidebar.js';
 import MapView from './components/MapView';
-import FacilityPanel from './components/Facility/Facility';
 import AboutPage from './pages/AboutPage';
 import PopulationPage from './pages/PopulationPage';
 import HexagonMap from './components/HexagonMap';
@@ -241,7 +240,6 @@ function App() {
             <Route path="/about" element={<AboutPage />} />
           </Routes>
         </div>
-        <FacilityPanel />
       </div>
     </Router>
   );

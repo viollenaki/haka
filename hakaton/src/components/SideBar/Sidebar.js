@@ -18,7 +18,7 @@ const Sidebar = ({
   setHexagonOpacity,
   onHexagonLayerToggle
 }) => {
-  const [activeTab, setActiveTab] = useState('facilities'); // facilities, hexagons
+  const [activeTab, setActiveTab] = useState('facilities');
   
   // Обработчик переключения вкладок
   const handleTabChange = (tab) => {
@@ -33,6 +33,21 @@ const Sidebar = ({
     if (tab === 'hexagons' && onHexagonLayerToggle) {
       onHexagonLayerToggle();
     }
+  };
+
+  // Функция для перетаскивания
+  const handleDragStart = (e, type) => {
+    e.dataTransfer.setData('facilityType', type);
+  };
+
+  const labels = {
+    school: "Школы",
+    hospital: "Больницы",
+    clinic: "Клиники",
+    kindergarten: "Детские сады",
+    college: "Колледжи",
+    university: "Университеты",
+    fire_station: "Пожарные станции"
   };
 
   return (
@@ -61,88 +76,35 @@ const Sidebar = ({
         <div className="tab-content">
           <div className="facility-type-selector">
             <h3>Тип учреждения</h3>
-            <div>
-              <label>
-                <input 
-                  type="radio" 
-                  name="facilityType" 
-                  value="school"
-                  checked={selectedFacilityType === 'school'}
-                  onChange={() => onFacilityTypeChange('school')}
-                />
-                Школы
-              </label>
-            </div>
-            <div>
-              <label>
-                <input 
-                  type="radio" 
-                  name="facilityType" 
-                  value="hospital"
-                  checked={selectedFacilityType === 'hospital'}
-                  onChange={() => onFacilityTypeChange('hospital')}
-                />
-                Больницы
-              </label>
-            </div>
-            <div>
-              <label>
-                <input 
-                  type="radio" 
-                  name="facilityType" 
-                  value="clinic"
-                  checked={selectedFacilityType === 'clinic'}
-                  onChange={() => onFacilityTypeChange('clinic')}
-                />
-                Клиники
-              </label>
-            </div>
-            <div>
-              <label>
-                <input 
-                  type="radio" 
-                  name="facilityType" 
-                  value="kindergarten"
-                  checked={selectedFacilityType === 'kindergarten'}
-                  onChange={() => onFacilityTypeChange('kindergarten')}
-                />
-                Детские сады
-              </label>
-            </div>
-            <div>
-              <label>
-                <input 
-                  type="radio" 
-                  name="facilityType" 
-                  value="college"
-                  checked={selectedFacilityType === 'college'}
-                  onChange={() => onFacilityTypeChange('college')}
-                />
-                Колледжи
-              </label>
-            </div>
-            <div>
-              <label>
-                <input 
-                  type="radio" 
-                  name="facilityType" 
-                  value="university"
-                  checked={selectedFacilityType === 'university'}
-                  onChange={() => onFacilityTypeChange('university')}
-                />
-                Университеты
-              </label>
-            </div>
+            
+            {Object.keys(labels).map(type => (
+              <div key={type} className="facility-row">
+                <div className="facility-radio">
+                  <label>
+                    <input 
+                      type="radio" 
+                      name="facilityType" 
+                      value={type}
+                      checked={selectedFacilityType === type}
+                      onChange={() => onFacilityTypeChange(type)}
+                    />
+                    {labels[type]}
+                  </label>
+                </div>
+                <div 
+                  className="facility-drag-button"
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, type)}
+                  title={`Перетащите ${labels[type].toLowerCase()} на карту`}
+                  data-type={type}
+                >
+                  <span className="drag-icon">+</span>
+                </div>
+              </div>
+            ))}
           </div>
           
-          {/* <button 
-            className="btn" 
-            onClick={onRunAnalysis}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Загрузка...' : 'Показать текущие учреждения'}
-          </button> */}
-          
+          {/* Оставляем только эту важную кнопку */}
           <button 
             className="btn" 
             onClick={onGetRecommendations}
@@ -154,12 +116,12 @@ const Sidebar = ({
           <div className="info-box">
             <h3>Информация</h3>
             <p>
-              Выберите тип учреждения и область на карте, затем нажмите кнопку "Показать текущие учреждения", 
-              чтобы загрузить данные о существующих объектах.
+              Выберите тип учреждения для анализа или перетащите иконку "+" на карту, 
+              чтобы смоделировать размещение нового учреждения.
             </p>
             <p>
-              Нажмите "Получить рекомендации", чтобы система проанализировала данные и предложила оптимальные места 
-              для строительства новых объектов.
+              Нажмите "Получить рекомендации", чтобы система проанализировала данные и 
+              предложила оптимальные места для строительства новых объектов.
             </p>
           </div>
         </div>
