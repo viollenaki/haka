@@ -11,8 +11,7 @@ const Header = () => {
         </h1>
         <nav className="nav-links">
           <Link to="/" className="nav-link">Карта</Link>
-          <Link to="/population" className="nav-link">Население</Link>
-          <Link to="/hexmap" className="nav-link">Гексагоны</Link>
+
           <Link to="/about" className="nav-link">О проекте</Link>
         </nav>
       </div>

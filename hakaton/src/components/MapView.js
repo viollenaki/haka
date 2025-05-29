@@ -19,11 +19,14 @@ const MapView = ({
   hexagonData,
   hexagonMode = false,
   allowFacilityDrop = true,
-  onFacilityAdded = null
+  onFacilityAdded = null,
+  userAddedFacilities = [],
+  clearUserFacilities = null
 }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const userLayersRef = useRef([]); // Для отслеживания пользовательских слоев
 
   // Идентификаторы слоев
   const facilityLayerId = 'facilities-layer';
@@ -558,34 +561,25 @@ const MapView = ({
     return () => clearTimeout(timer);
   }, [showHexagons, hexagonData, hexagonOpacity, mapLoaded, hexagonMode, cleanupLayer]);
 
-  // New function to handle drag and drop functionality
-  const setupDragAndDrop = useCallback(() => {
-    if (!map.current || !mapLoaded || !allowFacilityDrop) return;
+  // Функция для отрисовки пользовательских объектов на карте
+  const renderUserFacilities = useCallback(() => {
+    if (!map.current || !mapLoaded) return;
     
-    const container = map.current.getContainer();
+    // Сначала очистим все существующие пользовательские слои
+    userLayersRef.current.forEach(layerId => {
+      if (map.current.getLayer(layerId)) {
+        map.current.removeLayer(layerId);
+      }
+      if (map.current.getSource(layerId)) {
+        map.current.removeSource(layerId);
+      }
+    });
+    userLayersRef.current = [];
     
-    const handleDragOver = (e) => {
-      e.preventDefault(); // Необходимо для разрешения события drop
-    };
-    
-    const handleDrop = (e) => {
-      e.preventDefault();
-      
-      // Получаем тип учреждения из события перетаскивания
-      const type = e.dataTransfer.getData('facilityType');
-      if (!type) return;
-      
-      // Получаем координаты на карте из позиции события
-      const rect = container.getBoundingClientRect();
-      const point = [e.clientX - rect.left, e.clientY - rect.top];
-      const lngLat = map.current.unproject(point);
-      
-      // Определяем радиус покрытия для данного типа объекта
-      const radius = COVERAGE_RADIUS[type] || coverageRadius || 2; // в км
-      
-      // Создаем уникальные ID для слоев
-      const markerId = `marker-${Date.now()}`;
-      const circleId = `circle-${Date.now()}`;
+    // Отрисуем все пользовательские объекты
+    userAddedFacilities.forEach((facility, index) => {
+      const markerId = `user-marker-${index}`;
+      const circleId = `user-circle-${index}`;
       
       // Добавляем источник данных для маркера
       map.current.addSource(markerId, {
@@ -593,12 +587,12 @@ const MapView = ({
         data: {
           type: 'Feature',
           properties: {
-            type: type,
-            name: `Новый объект: ${type}`
+            type: facility.type,
+            name: `Новый объект: ${facility.type}`
           },
           geometry: {
             type: 'Point',
-            coordinates: [lngLat.lng, lngLat.lat]
+            coordinates: [facility.longitude, facility.latitude]
           }
         }
       });
@@ -610,7 +604,7 @@ const MapView = ({
         source: markerId,
         paint: {
           'circle-radius': 8,
-          'circle-color': FACILITY_COLORS[type] || '#888',
+          'circle-color': FACILITY_COLORS[facility.type] || '#888',
           'circle-stroke-color': 'white',
           'circle-stroke-width': 2
         }
@@ -622,11 +616,11 @@ const MapView = ({
         data: {
           type: 'Feature',
           properties: {
-            radius: radius
+            radius: facility.coverageRadius || COVERAGE_RADIUS[facility.type] || 2
           },
           geometry: {
             type: 'Point',
-            coordinates: [lngLat.lng, lngLat.lat]
+            coordinates: [facility.longitude, facility.latitude]
           }
         }
       });
@@ -643,17 +637,47 @@ const MapView = ({
             10, ['*', ['get', 'radius'], 10],
             15, ['*', ['get', 'radius'], 100]
           ],
-          'circle-color': FACILITY_COLORS[type] || '#888',
+          'circle-color': FACILITY_COLORS[facility.type] || '#888',
           'circle-opacity': 0.15,
-          'circle-stroke-color': FACILITY_COLORS[type] || '#888',
+          'circle-stroke-color': FACILITY_COLORS[facility.type] || '#888',
           'circle-stroke-width': 1,
           'circle-stroke-opacity': 0.5
         }
       });
       
-      // Показываем popup
-      new mapboxgl.Popup()
-        .setLngLat([lngLat.lng, lngLat.lat])
+      userLayersRef.current.push(markerId, circleId);
+    });
+  }, [userAddedFacilities, mapLoaded]);
+  
+  // Обновляем отображение пользовательских объектов при их изменении
+  useEffect(() => {
+    renderUserFacilities();
+  }, [userAddedFacilities, renderUserFacilities]);
+
+  // Функция для перетаскивания объектов
+  const setupDragAndDrop = useCallback(() => {
+    if (!map.current || !mapLoaded || !allowFacilityDrop) return;
+    
+    const container = map.current.getContainer();
+    
+    const handleDragOver = (e) => {
+      e.preventDefault();
+    };
+    
+    const handleDrop = (e) => {
+      e.preventDefault();
+      
+      // Получаем тип учреждения из события перетаскивания
+      const type = e.dataTransfer.getData('facilityType');
+      if (!type) return;
+      
+      // Получаем координаты на карте из позиции события
+      const rect = container.getBoundingClientRect();
+      const point = [e.clientX - rect.left, e.clientY - rect.top];
+      const lngLat = map.current.unproject(point);
+      
+      // Определяем радиус покрытия для данного типа объекта
+      const radius = COVERAGE_RADIUS[type] || coverageRadius || 2; // в км
       
       // Если предоставлена функция обратного вызова, вызываем её с новым объектом
       if (onFacilityAdded && typeof onFacilityAdded === 'function') {

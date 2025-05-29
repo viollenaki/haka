@@ -16,9 +16,12 @@ const Sidebar = ({
   setShowHexagons,
   hexagonOpacity,
   setHexagonOpacity,
-  onHexagonLayerToggle
+  onHexagonLayerToggle,
+  onClearUserFacilities,
+  hasUserAddedFacilities
 }) => {
   const [activeTab, setActiveTab] = useState('facilities');
+  const [showDragHint, setShowDragHint] = useState(true);
   
   // Обработчик переключения вкладок
   const handleTabChange = (tab) => {
@@ -77,6 +80,16 @@ const Sidebar = ({
           <div className="facility-type-selector">
             <h3>Тип учреждения</h3>
             
+            {showDragHint && (
+              <div className="drag-hint-box">
+                <div className="drag-hint-icon">🔄</div>
+                <div className="drag-hint-text">
+                  <p>Перетащите иконку <span className="drag-icon">+</span> на карту, чтобы добавить новый объект</p>
+                </div>
+                <button className="drag-hint-close" onClick={() => setShowDragHint(false)}>&times;</button>
+              </div>
+            )}
+            
             {Object.keys(labels).map(type => (
               <div key={type} className="facility-row">
                 <div className="facility-radio">
@@ -104,7 +117,7 @@ const Sidebar = ({
             ))}
           </div>
           
-          {/* Оставляем только эту важную кнопку */}
+          {/* Кнопки действий */}
           <button 
             className="btn" 
             onClick={onGetRecommendations}
@@ -112,6 +125,16 @@ const Sidebar = ({
           >
             Получить рекомендации
           </button>
+          
+          {hasUserAddedFacilities && (
+            <button 
+              className="btn btn-secondary" 
+              onClick={onClearUserFacilities}
+              style={{ marginTop: '10px' }}
+            >
+              Очистить добавленные объекты
+            </button>
+          )}
           
           <div className="info-box">
             <h3>Информация</h3>
@@ -218,7 +241,7 @@ const Sidebar = ({
                     <i className="info-icon">ℹ️</i> Вы находитесь в режиме просмотра гексагонов. Другие слои временно скрыты.
                   </p>
                 </div>
-                
+{/*                 
                 <div className="control-group">
                   <label htmlFor="hexOpacity">Непрозрачность:</label>
                   <div className="slider-container">
@@ -233,16 +256,8 @@ const Sidebar = ({
                     />
                     <div className="slider-value">{Math.round(hexagonOpacity * 100)}%</div>
                   </div>
-                </div>
+                </div> */}
                 
-                <div className="legend-preview">
-                  <h4>Легенда плотности населения:</h4>
-                  <div className="hexagon-gradient-bar"></div>
-                  <div className="hexagon-gradient-labels">
-                    <span>Низкая</span>
-                    <span>Высокая</span>
-                  </div>
-                </div>
                 
                 <div className="info-box">
                   <h4>О данных</h4>

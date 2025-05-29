@@ -10,6 +10,7 @@ import MapView from './components/MapView';
 import AboutPage from './pages/AboutPage/AboutPage.js';
 import PopulationPage from './pages/PopulationPage';
 import HexagonMap from './components/HexagonMap';
+import LoadingOverlay from './components/LoadingOverlay';
 
 // Импорт вспомогательных файлов
 import api from './utils/apiInstance';
@@ -34,6 +35,15 @@ function App() {
 
   // Новое состояние для режима гексагонов (когда видны только гексагоны)
   const [hexagonMode, setHexagonMode] = useState(false);
+
+  // Состояние для сообщения загрузки AI
+  const [aiLoadingMessage, setAiLoadingMessage] = useState("");
+  
+  // Отдельное состояние для отслеживания загрузки AI рекомендаций
+  const [isAILoading, setIsAILoading] = useState(false);
+
+  // Состояние для добавленных пользователем объектов
+  const [userAddedFacilities, setUserAddedFacilities] = useState([]);
 
   // Находит и устанавливает радиус для выбранного типа учреждения
   const updateCoverageRadius = (facilityType) => {
@@ -100,8 +110,14 @@ function App() {
   const handleGetRecommendations = async () => {
     if (!mapBounds) return;
     
-    setIsAnalysisLoading(true);
+    // Используем отдельный флаг для загрузки AI вместо общего isAnalysisLoading
+    setIsAILoading(true);
+    setAiLoadingMessage("Анализируем данные для оптимального размещения объектов...");
+    
     try {
+      // Имитация более долгой загрузки для демонстрации анимации
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       // Используем метод из API вместо прямого fetch
       const recommendationsData = await api.getRecommendations(
         selectedFacilityType, 
@@ -111,6 +127,9 @@ function App() {
       
       // Установка полученных рекомендаций с добавлением типа учреждения
       if (recommendationsData && recommendationsData.locations) {
+        setAiLoadingMessage("Визуализируем рекомендуемые места...");
+        await new Promise(resolve => setTimeout(resolve, 500)); // Небольшая задержка для UX
+        
         const locationsWithType = recommendationsData.locations.map(loc => ({
           ...loc,
           type: selectedFacilityType // Добавляем тип учреждения к каждой рекомендации
@@ -129,7 +148,7 @@ function App() {
       setRecommendations([]);
       alert(`Ошибка при получении рекомендаций: ${error.message || 'Неизвестная ошибка'}`);
     } finally {
-      setIsAnalysisLoading(false);
+      setIsAILoading(false);
     }
   };
 
@@ -171,9 +190,14 @@ function App() {
   };
   
   const handleFacilityAdded = (newFacility) => {
-    // Handle the new facility - perhaps add it to state
     console.log('New facility added:', newFacility);
-    // Update your facilities state here if needed
+    // Добавляем новый объект в массив добавленных пользователем объектов
+    setUserAddedFacilities(prev => [...prev, newFacility]);
+  };
+  
+  // Функция для очистки всех добавленных пользователем точек
+  const handleClearUserFacilities = () => {
+    setUserAddedFacilities([]);
   };
   
   // Инициализация радиуса при первой загрузке
@@ -207,10 +231,12 @@ function App() {
                   heatmapIntensity={heatmapIntensity}
                   setHeatmapIntensity={setHeatmapIntensity}
                   showHexagons={showHexagons}
-                  setShowHexagons={handleHexagonModeToggle}  // Передаём новый обработчик
+                  setShowHexagons={handleHexagonModeToggle}
                   hexagonOpacity={hexagonOpacity}
                   setHexagonOpacity={setHexagonOpacity}
                   onHexagonLayerToggle={() => loadHexagonData()}
+                  onClearUserFacilities={handleClearUserFacilities}
+                  hasUserAddedFacilities={userAddedFacilities.length > 0}
                 />
                 <main className="main-content">
                   <MapView 
@@ -219,14 +245,20 @@ function App() {
                     onBoundsChange={handleMapBoundsChange}
                     facilityType={selectedFacilityType}
                     coverageRadius={coverageRadius}
-                    showHeatmap={showHeatmap && !hexagonMode} // Показываем heatmap только если не в режиме гексагонов
+                    showHeatmap={showHeatmap && !hexagonMode}
                     heatmapIntensity={heatmapIntensity}
                     showHexagons={showHexagons}
                     hexagonOpacity={hexagonOpacity}
                     hexagonData={hexagonData}
-                    hexagonMode={hexagonMode} // Передаем флаг режима гексагонов
+                    hexagonMode={hexagonMode}
                     allowFacilityDrop={true}
                     onFacilityAdded={handleFacilityAdded}
+                    userAddedFacilities={userAddedFacilities}
+                    clearUserFacilities={handleClearUserFacilities}
+                  />
+                  <LoadingOverlay 
+                    visible={isAILoading} 
+                    message={aiLoadingMessage}
                   />
                 </main>
               </>
