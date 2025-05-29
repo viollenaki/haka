@@ -1,0 +1,323 @@
+/* Основные стили для сайдбара */
+.sidebar {
+  width: 400px;
+  background-color: white;
+  padding: var(--spacing-lg);
+  overflow-y: auto;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  z-index: 5;
+  border-right: 1px solid var(--gray-200);
+  transition: all 0.3s ease;
+  border-radius: 0 10px 10px 0;
+}
+
+.sidebar h2 {
+  margin-top: 0;
+  margin-bottom: var(--spacing-lg);
+  color: var(--primary-color);
+  font-size: 1.4rem;
+  text-align: left;
+  border-bottom: 2px solid var(--primary-light);
+  padding-bottom: 10px;
+  position: relative;
+}
+
+.sidebar h3 {
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+  font-size: 1.1rem;
+  color: var(--gray-800);
+  text-align: left;
+  padding-left: 10px;
+  border-left: 3px solid var(--primary-light);
+}
+
+/* Стили для вкладок в сайдбаре */
+.sidebar-tabs {
+  display: flex;
+  margin-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--gray-300);
+  background-color: var(--gray-50);
+  border-radius: 8px;
+  padding: 5px;
+}
+
+.tab-button {
+  background: none;
+  border: none;
+  padding: 10px 15px;
+  font-size: 1rem;
+  cursor: pointer;
+  position: relative;
+  color: var(--gray-600);
+  transition: all 0.25s ease;
+  flex: 1;
+  text-align: center;
+  border-radius: 6px;
+}
+
+.tab-button:hover {
+  color: var(--primary-color);
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.tab-button.active {
+  color: white;
+  font-weight: 500;
+  background-color: var(--primary-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button.active:after {
+  display: none;
+}
+
+.tab-content {
+  padding-top: var(--spacing-sm);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Стили для выбора типа объекта */
+.facility-type-selector {
+  margin-bottom: var(--spacing-xl);
+  text-align: left;
+}
+
+.facility-type-selector > div {
+  margin-bottom: var(--spacing-sm);
+}
+
+.facility-type-selector label {
+  height: 48px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  font-size: 1.05rem;
+}
+
+.facility-type-selector label:hover {
+  background-color: var(--primary-light);
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+.facility-type-selector input[type="radio"] {
+  margin-right: var(--spacing-sm);
+  accent-color: var(--primary-color);
+  width: 18px;
+  height: 18px;
+}
+
+.facility-type-selector input[type="radio"]:checked + span {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+/* Стили для кнопок */
+.btn {
+  background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+  color: white;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.05rem;
+  width: 100%;
+  margin-top: var(--spacing-md);
+  font-weight: 500;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn:hover {
+  background: linear-gradient(135deg, var(--secondary-dark), var(--secondary-color));
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  background: linear-gradient(135deg, var(--gray-400), var(--gray-500));
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  opacity: 0.7;
+}
+
+/* Информационный блок */
+.info-box {
+  background-color: var(--gray-50);
+  border-left: 4px solid var(--primary-color);
+  padding: var(--spacing-md);
+  border-radius: 8px;
+  text-align: left;
+  font-size: 0.95rem;
+  margin-top: var(--spacing-xl);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.info-box h3, .info-box h4 {
+  color: var(--primary-color);
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+/* Стили для вкладки гексагонов */
+.tab-content .heat-control-panel {
+  background-color: var(--gray-50);
+  border-radius: 8px;
+  padding: var(--spacing-md);
+  border: 1px solid var(--gray-300);
+}
+
+/* Информационный блок в режиме гексагонов */
+.mode-info-box {
+  background-color: rgba(23, 162, 184, 0.1);
+  border-left: 4px solid #17a2b8;
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin: var(--spacing-md) 0;
+  border-radius: 8px;
+  position: relative;
+}
+
+.mode-info {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--gray-800);
+  display: flex;
+  align-items: center;
+}
+
+.info-icon {
+  margin-right: var(--spacing-sm);
+  font-style: normal;
+  color: #17a2b8;
+}
+
+/* Стили для градиентной полосы гексагонов */
+.hexagon-gradient-bar {
+  height: 12px;
+  background: linear-gradient(to right, #0571b0, #6baed6, #74c476, #fd8d3c, #de2d26);
+  border-radius: var(--border-radius-sm);
+  margin: var(--spacing-xs) 0;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.hexagon-gradient-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--gray-700);
+  margin-top: 5px;
+}
+
+/* Заголовок для вкладки гексагонов */
+.tab-content h3 {
+  display: flex;
+  align-items: center;
+}
+
+/* .tab-content h3:before {
+  content: "⬢";
+  margin-right: 8px;
+  color: var(--primary-color);
+} */
+
+/* Стили для легенды */
+.legend-preview {
+  background-color: white;
+  border: 1px solid var(--gray-200);
+  padding: var(--spacing-sm);
+  border-radius: 6px;
+  margin: var(--spacing-md) 0;
+}
+
+.legend-preview h4 {
+  margin-top: 0;
+  margin-bottom: var(--spacing-xs);
+  font-size: 0.95rem;
+  color: var(--gray-700);
+  font-weight: 500;
+}
+
+/* Улучшенные стили для ползунка непрозрачности */
+input[type="range"].range-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 5px;
+  border-radius: 5px;
+  background: linear-gradient(to right, var(--primary-light), var(--primary-color));
+  outline: none;
+}
+
+input[type="range"].range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+input[type="range"].range-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Улучшенные стили для контрольной группы */
+.control-group {
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+}
+
+/* Улучшенные стили для чекбокса */
+input[type="checkbox"] {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid var(--gray-400);
+  background-color: white;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+input[type="checkbox"]:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+input[type="checkbox"]:checked:after {
+  content: '✓';
+  position: absolute;
+  color: white;
+  font-size: 12px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

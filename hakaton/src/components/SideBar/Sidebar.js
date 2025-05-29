@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import './SideBar.css';
+
 
 const Sidebar = ({ 
   selectedFacilityType, 
@@ -133,24 +135,23 @@ const Sidebar = ({
             </div>
           </div>
           
-          <button 
+          {/* <button 
             className="btn" 
             onClick={onRunAnalysis}
             disabled={isLoading}
           >
             {isLoading ? 'Загрузка...' : 'Показать текущие учреждения'}
-          </button>
+          </button> */}
           
           <button 
             className="btn" 
             onClick={onGetRecommendations}
-            style={{ marginTop: '20px', backgroundColor: '#2196F3' }}
             disabled={isLoading}
           >
             Получить рекомендации
           </button>
           
-          <div className="info-box" style={{ marginTop: '20px', fontSize: '14px' }}>
+          <div className="info-box">
             <h3>Информация</h3>
             <p>
               Выберите тип учреждения и область на карте, затем нажмите кнопку "Показать текущие учреждения", 

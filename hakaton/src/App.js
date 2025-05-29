@@ -4,8 +4,8 @@ import './App.css';
 
 
 
-import Header from './components/Header';
-import Sidebar from './components/Sidebar';
+import Header from './components/Header/Header.js';
+import Sidebar from './components/SideBar/Sidebar.js';
 import MapView from './components/MapView';
 import FacilityPanel from './components/FacilityPanel';
 import AboutPage from './pages/AboutPage';
