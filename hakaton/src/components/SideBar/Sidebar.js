@@ -81,16 +81,7 @@ const Sidebar = ({
           <div className="facility-type-selector">
             <h3>Тип учреждения</h3>
             
-            {showDragHint && (
-              <div className="drag-hint-box">
-                <div className="drag-hint-icon">🔄</div>
-                <div className="drag-hint-text">
-                  <p>Перетащите иконку <span className="drag-icon">+</span> на карту, чтобы добавить новый объект</p>
-                </div>
-                <button className="drag-hint-close" onClick={() => setShowDragHint(false)}>&times;</button>
-              </div>
-            )}
-            
+            {/* Оставляем только одну подсказку о перетаскивании */}
             {showDragHint && (
               <div className="drag-hint-box">
                 <div className="drag-hint-icon">🔄</div>
