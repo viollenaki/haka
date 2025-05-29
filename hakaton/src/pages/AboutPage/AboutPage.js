@@ -1,9 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import './AboutPage.css';
 
 const AboutPage = () => {
   return (
-    <div className="about-page" style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+    <div className="about-page">
       <h1>О проекте "PopMap Recommender"</h1>
       
       <section>
@@ -44,13 +45,7 @@ const AboutPage = () => {
       </section>
       
       <div style={{ marginTop: '30px' }}>
-        <Link to="/" style={{ 
-          padding: '10px 20px', 
-          backgroundColor: '#4CAF50', 
-          color: 'white',
-          textDecoration: 'none',
-          borderRadius: '4px'
-        }}>
+        <Link to="/">
           Вернуться на главную
         </Link>
       </div>

@@ -7,7 +7,7 @@ import './App.css';
 import Header from './components/Header/Header.js';
 import Sidebar from './components/SideBar/Sidebar.js';
 import MapView from './components/MapView';
-import AboutPage from './pages/AboutPage';
+import AboutPage from './pages/AboutPage/AboutPage.js';
 import PopulationPage from './pages/PopulationPage';
 import HexagonMap from './components/HexagonMap';
 
