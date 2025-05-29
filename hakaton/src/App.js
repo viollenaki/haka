@@ -15,6 +15,8 @@ import HexagonMap from './components/HexagonMap';
 // Импорт вспомогательных файлов
 import api from './utils/apiInstance';
 import radiusData from './radius.json';
+// Импортируем наши данные о гексагонах напрямую
+import geojsonData from './bishkek_filtered.geojson.js';
 
 function App() {
   const [selectedFacilityType, setSelectedFacilityType] = useState('school');
@@ -134,14 +136,25 @@ function App() {
 
   // Функция для загрузки данных гексагонов
   const loadHexagonData = async () => {
-    if (showHexagons && !hexagonData) {
+    if (showHexagons) {
       setIsAnalysisLoading(true);
       try {
-        const data = await api.getPopulationHexagons();
-        setHexagonData(data);
-        console.log(`Загружено ${data.features?.length || 0} гексагонов`);
+        // Попробуем сначала загрузить через API
+        try {
+          const data = await api.getPopulationHexagons();
+          setHexagonData(data);
+          console.log(`Загружено ${data.features?.length || 0} гексагонов из API`);
+        } catch (apiError) {
+          console.warn("Не удалось загрузить гексагоны через API, используем локальные данные:", apiError);
+          
+          // Если API не сработал, используем локальные данные
+          setHexagonData(geojsonData);
+          console.log(`Загружено ${geojsonData.features?.length || 0} гексагонов из локального файла`);
+        }
       } catch (error) {
         console.error('Error fetching hexagon data:', error);
+        // В случае ошибки используем локальные данные
+        setHexagonData(geojsonData);
       } finally {
         setIsAnalysisLoading(false);
       }

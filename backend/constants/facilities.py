@@ -5,7 +5,7 @@
 # Радиусы охвата для разных типов объектов (в км)
 COVERAGE_RADIUS = {
     "school": 2,
-    "hospital": 3,
+    "hospital": 2,
     "clinic": 2,
     "kindergarten": 1.5,
     "college": 2,

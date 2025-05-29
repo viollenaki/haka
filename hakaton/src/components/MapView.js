@@ -450,24 +450,23 @@ const MapView = ({
     return () => clearTimeout(timer);
   }, [showHeatmap, facilities, heatmapIntensity, mapLoaded, hexagonMode]); // Добавлена зависимость cleanupLayer
 
-  // Слой гексагонов - объединяем в один эффект для управления отображением
+  // Слой гексагонов
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
 
-    // Устанавливаем таймер для гарантии, что операции произойдут последовательно
     const timer = setTimeout(() => {
       try {
-        // Очищаем существующие слои
+        // Очищаем старые слои гексагонов
         cleanupLayer(hexagonLayerId);
-        cleanupLayer('hexagons-outline');
+        cleanupLayer('hexagons-outline'); // Удаляем и контуры гексагонов
         
         // Проверяем, нужно ли показывать гексагоны
-        if (!showHexagons || !hexagonData || !hexagonData.features) {
-          console.log("Skipping hexagon layer rendering: data not available or layer disabled");
+        if (!showHexagons || !hexagonData) {
+          console.log("Skipping hexagon layer: showHexagons=", showHexagons, "hexagonData=", hexagonData ? "available" : "null");
           return;
         }
 
-        console.log(`Rendering ${hexagonData.features.length} hexagons`);
+        console.log(`Rendering hexagon layer with ${hexagonData.features?.length || 0} hexagons`);
 
         // Добавляем источник данных для гексагонов
         map.current.addSource(hexagonLayerId, {
@@ -475,7 +474,7 @@ const MapView = ({
           data: hexagonData
         });
 
-        // Добавляем слой с заполненными гексагонами
+        // Добавляем слой с заполненными гексагонами с градиентом согласно фото
         map.current.addLayer({
           id: hexagonLayerId,
           type: 'fill',
@@ -485,11 +484,11 @@ const MapView = ({
               'interpolate',
               ['linear'],
               ['get', 'population'],
-              0, '#0571b0',
-              200, '#6baed6',
-              400, '#74c476',
-              600, '#fd8d3c',
-              800, '#de2d26'
+              0, '#0571b0',    // Тёмно-синий для минимальных значений
+              100, '#92c5de',  // Светло-синий
+              200, '#f7f7f7',  // Зеленоватый/нейтральный
+              400, '#fc8d59',  // Оранжевый
+              800, '#d7301f'   // Красный для максимальных значений
             ],
             'fill-opacity': hexagonOpacity
           }
@@ -501,13 +500,13 @@ const MapView = ({
           type: 'line',
           source: hexagonLayerId,
           paint: {
-            'line-color': '#000',
-            'line-width': 1,
+            'line-color': '#000000',
+            'line-width': 0.5,
             'line-opacity': 0.3
           }
         });
 
-        // Добавляем интерактивность
+        // Добавляем интерактивность для гексагонов с информацией о населении
         map.current.on('click', hexagonLayerId, (e) => {
           if (!e.features || e.features.length === 0) return;
           
@@ -519,19 +518,19 @@ const MapView = ({
             .setLngLat(coordinates)
             .setHTML(`
               <h4>Информация о зоне</h4>
-              <p><strong>H3 индекс:</strong> ${h3 || 'Н/Д'}</p>
               <p><strong>Население:</strong> ${population || 0} чел.</p>
+              <p><strong>H3 индекс:</strong> ${h3 || 'Н/Д'}</p>
             `)
             .addTo(map.current);
         });
         
         // Изменяем курсор при наведении
         map.current.on('mouseenter', hexagonLayerId, () => {
-          map.current.getCanvas().style.cursor = 'pointer';
+          if (map.current) map.current.getCanvas().style.cursor = 'pointer';
         });
         
         map.current.on('mouseleave', hexagonLayerId, () => {
-          map.current.getCanvas().style.cursor = '';
+          if (map.current) map.current.getCanvas().style.cursor = '';
         });
 
         // Устанавливаем визуальное отображение режима гексагонов
@@ -555,7 +554,7 @@ const MapView = ({
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [showHexagons, hexagonData, hexagonOpacity, mapLoaded, hexagonMode]); // Убрали cleanupLayer
+  }, [showHexagons, hexagonData, hexagonOpacity, mapLoaded, hexagonMode, cleanupLayer]);
 
   return (
     <div ref={mapContainer} style={{ height: '100%', width: '100%' }} />

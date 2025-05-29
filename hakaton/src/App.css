@@ -440,6 +440,39 @@
   margin-bottom: var(--spacing-xs);
 }
 
+/* Дополнительные стили для легенды гексагонов */
+.hexagon-legend {
+  background-color: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  padding: 10px;
+  position: absolute;
+  bottom: 30px;
+  right: 10px;
+  z-index: 1000;
+}
+
+.hexagon-gradient-bar {
+  height: 10px;
+  width: 200px;
+  background: linear-gradient(to right, 
+    #0571b0, /* Темно-синий - низкая плотность */
+    #92c5de, /* Светло-синий */
+    #f7f7f7, /* Нейтральный */
+    #fc8d59, /* Оранжевый */
+    #d7301f  /* Красный - высокая плотность */
+  );
+  margin: 5px 0;
+  border-radius: 2px;
+}
+
+.hexagon-gradient-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #555;
+}
+
 /* Индикатор загрузки для карты */
 .map-loading-overlay {
   position: absolute;
